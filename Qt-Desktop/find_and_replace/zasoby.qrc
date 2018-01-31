@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>edit-find-and-replace.ico</file>
+    </qresource>
+</RCC>

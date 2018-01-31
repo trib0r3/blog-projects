@@ -1,0 +1,587 @@
+fileFormatVersion: 2
+guid: 4650d8a8990999c46ae8d9bd95eeb905
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: beams
+    21300002: beams_0
+    21300004: beams_1
+    21300006: beams_2
+    21300008: beams_3
+    21300010: beams_4
+    21300012: beams_5
+    21300014: beams_6
+    21300016: beams_7
+    21300018: beams_8
+    21300020: beams_9
+    21300022: beams_10
+    21300024: beams_11
+    21300026: beams_12
+    21300028: beams_13
+    21300030: beams_14
+    21300032: beams_15
+    21300034: beams_16
+    21300036: beams_17
+    21300038: beams_18
+    21300040: beams_19
+    21300042: beams_20
+    21300044: beams_21
+    21300046: beams_22
+    21300048: beams_23
+    21300050: beams_24
+    21300052: beams_25
+    21300054: beams_26
+    21300056: beams_27
+    21300058: beams_28
+    21300060: beams_29
+    21300062: beams_30
+    21300064: beams_31
+    21300066: beams_32
+    21300068: beams_33
+    21300070: beams_34
+    21300072: beams_35
+    21300074: beams_36
+    21300076: beams_37
+    21300078: beams_38
+    21300080: beams_39
+    21300082: beams_40
+    21300084: beams_41
+    21300086: beams_42
+    21300088: beams_43
+    21300090: beams_44
+    21300092: beams_45
+    21300094: beams_46
+    21300096: beams_47
+    21300098: beams_48
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: .25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  seamlessCubemap: 0
+  textureFormat: -2
+  maxTextureSize: 512
+  textureSettings:
+    filterMode: -1
+    aniso: 1
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: .5, y: .5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: beams_0
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 416
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_1
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 427
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_2
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 411
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_3
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 422
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_4
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 415
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_5
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 426
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_6
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 358
+        width: 47
+        height: 82
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_7
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 389
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_8
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 398
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_9
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 384
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_10
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 393
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_11
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 388
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_12
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 397
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_13
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 308
+        width: 60
+        height: 109
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_14
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 355
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_15
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 362
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_16
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 350
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_17
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 357
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_18
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 354
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_19
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 361
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_20
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 301
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_21
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 312
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_22
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 306
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_23
+      rect:
+        serializedVersion: 2
+        x: 117
+        y: 317
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_24
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 308
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_25
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 319
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_26
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 258
+        width: 52
+        height: 92
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_27
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 274
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_28
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 283
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_29
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 279
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_30
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 288
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_31
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 281
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_32
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 290
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_33
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 240
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_34
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 247
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_35
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 245
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_36
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 252
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_37
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 247
+        width: 20
+        height: 22
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_38
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 254
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_39
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 164
+        width: 27
+        height: 38
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_40
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 154
+        width: 44
+        height: 60
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_41
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 156
+        width: 39
+        height: 70
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_42
+      rect:
+        serializedVersion: 2
+        x: 162
+        y: 150
+        width: 43
+        height: 81
+      alignment: 2
+      pivot: {x: .5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_43
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 156
+        width: 41
+        height: 75
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_44
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 59
+        width: 54
+        height: 86
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_45
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 71
+        width: 33
+        height: 61
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_46
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 46
+        width: 46
+        height: 84
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_47
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 42
+        width: 54
+        height: 97
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: beams_48
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 191
+        width: 39
+        height: 27
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+  spritePackingTag: 
+  userData: 

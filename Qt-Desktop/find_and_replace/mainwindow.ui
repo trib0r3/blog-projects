@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>446</width>
+    <height>321</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Znajdź i Zamień</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="zasoby.qrc">
+    <normaloff>:/new/prefix1/edit-find-and-replace.ico</normaloff>:/new/prefix1/edit-find-and-replace.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Wyszukaj:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLineEdit" name="wyszukaj"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Zamień na:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="zamien_na"/>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="przycisk">
+      <property name="text">
+       <string>Zamień</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="3">
+     <widget class="QTextEdit" name="poleTekstowe"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>446</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuPlik">
+    <property name="title">
+     <string>Plik</string>
+    </property>
+    <addaction name="actionOtw_rz"/>
+    <addaction name="actionZapisz"/>
+    <addaction name="actionZapisz_jako"/>
+    <addaction name="separator"/>
+    <addaction name="actionZamknij"/>
+   </widget>
+   <addaction name="menuPlik"/>
+  </widget>
+  <action name="actionOtw_rz">
+   <property name="text">
+    <string>Otwórz</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionZamknij">
+   <property name="text">
+    <string>Zamknij</string>
+   </property>
+  </action>
+  <action name="actionZapisz_jako">
+   <property name="text">
+    <string>Zapisz jako...</string>
+   </property>
+  </action>
+  <action name="actionZapisz">
+   <property name="text">
+    <string>Zapisz</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="zasoby.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,1 @@
+'specjalne_efekty.cpp' to kod, który pokazuje sposób u¿ycia klasy SpecialEffects
