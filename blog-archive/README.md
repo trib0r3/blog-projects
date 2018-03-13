@@ -18,13 +18,15 @@ a wiec mowie tu o seriach:
 
 Wpisy znajduja sie w odpowiadajacych im kategoriach,
 
-## Y?
+## Q&A
+
+### Y?
 
 Moje obecne zainteresowania i obowiązki coraz mocniej rozmijają się z blogowaniem. 
 Sam też już nie odczuwam takiej chęci do blogowania co kiedyś, a że nie lubię robić nic na siłę to postanowiłem zrezygnować z blogowania.
 
 
-## Czy to full-backup?
+### Czy znajde tutaj kopie wszyskich wpisow?
 
 Nie. A to dlatego, ze nie widze sensu eksportowania wpisow z kategorii: news, obsolete oraz tych, ktore uwazam za przestarzale lub
 juz sie nie do konca z nimi zgadzam (tak, po paru latach blogowania mozna sie przestac zgadzac z samym soba).
@@ -42,6 +44,22 @@ W skrocie, nie znajdziecie powyzej:
 Jezeli ktos twierdzi, ze nie ma jego ulubionego artykulu (ofc mam pelen backup bloga) lub ma jakies pytanie, to
 zapraszam do kontaktu.
 
+
+### Czy moge uzywac znalezionych tutaj artykulow?
+
+(np na swojej stronie, pracy, itp)?
+
+Tak, ale pod pewnymi warunkami:
+
+1. Musisz mnie podac jako autora zamieszczonych materialow (Autor: "sheadovas")
+2. Musisz wskazac to repozytorium jako miejsce pochodzenia (link wskazujacy na https://github.com/sheadovas)
+3. Calosc spelnia postanowienia [licencji](#licencja)
+
 ## Kontakt
 
 Poki co jedyny sposob kontaktu jaki przewiduje, to poprzez wystawienie *Issue* przez githuba.
+
+## Licencja
+
+Podobnie jak blog tak i jego archiwum znajduje sie pod licencja [BSD3](LICENSE.txt)
+
