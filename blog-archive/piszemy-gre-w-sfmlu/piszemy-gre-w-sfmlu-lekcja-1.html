@@ -1,0 +1,178 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">Witam w pierwszej lekcji, w której zajmiemy si? ogóln? koncepcj? gry, jak b?dzie wygl?da? mniej wi?cej schemat gry oraz napiszemy proste menu.</p>
+<!--more-->
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;">Kod z tej i kolejnych lekcji znajdziesz na samym dole poszczególnych wpisów, w razie b??dów, problemów czy pyta? zostaw komentarz, a wtedy na pewno odpowiem.</p>
+
+<h3 style="text-align: justify;">Za?o?enia</h3>
+<ul style="text-align: justify;">
+	<li>nasza gra b?dzie gr? 2D z widokiem top down,</li>
+	<li>gra b?dzie survivalem, naszym celem b?dzie przetrwanie jak najd?u?ej,</li>
+	<li>wsparcie sterowania padem,</li>
+	<li>sterowanie b?dzie si? odbywa?o za pomoc? klawiatury i myszki lub za pomoc? pada,</li>
+	<li>warto aby gra mia?a jaki? tytu?, dlatego zamiast my?le? d?ugo nad nazw? skorzysta?em z Video Game Name Generator, nazwa naszej gry to: <span style="text-decoration: underline;">Mechanized Techno Explorer</span>.</li>
+</ul>
+<p style="text-align: justify;">Powy?sze wymagania spe?nimy w trakcie tutoriala, a tak?e dojd? nowe które b?dziemy uzupe?nia? na bie??co. Skoro mamy za?o?enia to jak b?dzie prezentowa?a si? struktura klas?</p>
+<img class="aligncenter" src="http://oi58.tinypic.com/2nsx6xh.jpg" alt="" width="289" height="316" />
+<p style="text-align: justify;">Jak wida? jest to dopiero sam pocz?tek, teraz opisze co która klasa b?dzie robi?: na pocz?tku funkcja <em>main()</em> uruchomi klas? <strong>Game</strong>, która b?dzie odpowiada?a za dzia?anie gry (np wy?wietlanie menu, uruchomienie w?a?ciwej gry, etc).</p>
+<p style="text-align: justify;"><strong>Engine</strong> zajmie si? wy?wietleniem obiektów na scenie oraz sprawdzi czy nie zachodzi kolizja.</p>
+
+<h3 style="text-align: justify;"></h3>
+<h3 style="text-align: justify;">Zaczynamy kodzi?!</h3>
+
+<hr />
+<p style="text-align: justify;">Ja korzystam z <em>Visual Studio 2010</em>, a wi?c tworz? nowy projekt oraz ustawiam projekt tak aby dzia? na nim SFML zgodnie z instrukcjami na stronie autorów (instrukcje w j?zyku polskim dla: <a title="SFML i Visual Studio" href="http://unknown/sfml-i-visual-studio/" target="_blank">Visual Studio</a> / <a title="SFML i Code::Blocks (MinGW)" href="http://unknown/sfml-i-codeblocks-mingw/" target="_blank">CodeBlocks</a>).</p>
+<p style="text-align: justify;">Czas na pierwsze linie kodu:</p>
+
+<pre class="lang:c++ decode:true" title="_main.cpp">#include "Game.h"
+
+int main()
+{
+	Game game;
+	game.runGame();
+
+	return EXIT_SUCCESS;
+}</pre>
+<p style="text-align: justify;">Skoro mamy ju? funkcj? g?ówn? to czas na klas? <strong>Game</strong>, która b?dzie zarz?dza?a nasz? gr?, na pocz?tku czas na deklaracje (zaraz wszystko wyja?ni? co b?dzie do czego s?u?y?o)</p>
+
+<pre class="lang:c++ decode:true " title="Game.h">#pragma once
+
+#include &lt;SFML/Graphics.hpp&gt;
+#include &lt;Windows.h&gt;
+#include &lt;string&gt;
+
+using namespace std;
+using namespace sf;
+
+class Game
+{
+public:
+	Game(void);
+	~Game(void);
+
+	void runGame();
+
+protected:
+	enum GameState {MENU,GAME,GAME_OVER,END};
+	GameState state;
+
+private:
+	Font font;
+
+	void menu();
+};</pre>
+<p style="text-align: justify;">Na pocz?tek zajmijmy si? analiz? <span class="lang:c++ decode:true crayon-inline ">enum GameState</span> , jest to jak sama nazwa wskazuje lista wyliczeniowa statusu gry, b?dzie nam s?u?y?a do okre?lenia tego, czy okno gry ma pokazywa? teraz menu, gr?, itp.</p>
+<p style="text-align: justify;"><em>Font font</em> przechowuje dla nas czcionk?.</p>
+<p style="text-align: justify;">Pierwsz? "funkcj?" b?dzie konstruktor. To co robi wida? na pierwszy rzut oka: ustawia status gry na koniec gry, ?aduje czcionk? je?li jej nie znajdzie to wyrzuca komunikat o b??dzie oraz zwraca nic ko?cz?c tym samym gr?. Je?li wszystko si? powiedzie ustawia status gry na MENU.</p>
+
+<pre class="lang:c++ decode:true">Game::Game(void)
+{
+	state = END;
+
+	if(!font.loadFromFile("data/Mecha.ttf"))
+	{
+		MessageBox(NULL,"Font not found!","ERROR",NULL);
+		return;
+	}
+
+	state = MENU;
+}</pre>
+<p style="text-align: justify;"><span class="lang:c++ decode:true crayon-inline ">void runGame()</span>  to metoda, któr? ju? znamy z funkcji <em>main()</em> gdzie jej u?yli?my do uruchomienia naszej gry, wygl?da ona tak:</p>
+
+<pre class="lang:c++ decode:true">void Game::runGame()
+{
+	while(state != END)
+	{
+		switch (state)
+		{
+		case GameState::MENU:
+			menu();
+			break;
+		case GameState::GAME:
+			//
+			break;
+		}
+	}
+}</pre>
+<p style="text-align: justify;">Jak wida? kod jest prosty, jest to to p?tla która wykonuje si? dopóki status gry nie zostanie ustawiony na <em>END</em>, w zale?no?ci od wcze?niejszego wyboru u?ytkownika uruchamia odpowiedni? funkcj?.</p>
+<p style="text-align: justify;">Nast?pn? i zarazem ostatni? metod? jest <span class="lang:c++ decode:true crayon-inline">void menu()</span>, która uruchamia i wy?wietla menu, przyjrzyjmy jej si? nieco bli?ej:</p>
+
+<pre class="lang:c++ decode:true">void Game::menu()
+{
+	Text title("Mechanized Techno Explorer",font,80);
+	title.setStyle(Text::Bold);
+
+	title.setPosition(1280/2-title.getGlobalBounds().width/2,20);
+
+	const int ile = 2;
+
+	Text tekst[ile];
+
+	string str[] = {"Play","Exit"};
+	for(int i=0;i&lt;ile;i++)
+	{
+		tekst[i].setFont(font);
+		tekst[i].setCharacterSize(65);
+
+		tekst[i].setString(str[i]);
+		tekst[i].setPosition(1280/2-tekst[i].getGlobalBounds().width/2,250+i*120);
+	}
+
+	while(state == MENU)
+	{
+		Vector2f mouse(Mouse::getPosition(/*mo?emy tutaj poda? okno*/));
+		Event event;
+
+		while(window.pollEvent(event))
+		{
+		//Wci?ni?cie ESC lub przycisk X
+		if(event.type == Event::Closed || event.type == Event::KeyPressed &amp;&amp;
+			event.key.code == Keyboard::Escape)
+			state = END;
+
+		//klikni?cie EXIT
+		else if(tekst[1].getGlobalBounds().contains(mouse) &amp;&amp;
+		event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left
+			{
+			state = END;
+			}
+		}
+		for(int i=0;i&lt;ile;i++)
+			if(tekst[i].getGlobalBounds().contains(mouse))
+				tekst[i].setColor(Color::Cyan);
+			else tekst[i].setColor(Color::White);
+
+		window.clear();
+
+		window.draw(title);
+		for(int i=0;i&lt;ile;i++)
+		window.draw(tekst[i]);
+
+		window.display();
+	}
+}</pre>
+<p style="text-align: justify;">Na pocz?tku nadajemy nag?ówek naszej grze po czym ustawiamy go na ?rodku ekranu korzystaj?c z prostej zale?no?ci:</p>
+<p style="text-align: center;"><em>(szeroko??_ekranu / 2) - (szeroko??_napisu / 2)</em></p>
+<p style="text-align: justify;">To samo robimy z napisami "Menu" oraz "Exit", przy czym zostawili?my sobie zmienn? dzi?ki której je?li b?dziemy chcieli b?dziemy mogli ?atwo dorobi? kolejny napis (tak chodzi mi tutaj o <span class="lang:c++ decode:true crayon-inline ">const int ile</span> ).</p>
+<p style="text-align: justify;">Dalej widzimy p?tle która sprawia ?e menu si? wy?wietla, dopóki u?ytkownik chce by? w menu.</p>
+<p style="text-align: justify;">W naszej p?tli tworzymy obiekt <em>Vector2f mouse</em>, który pokazuje nam aktualn? pozycj? myszy na ekranie, jest to wygodniejsze ni? pisanie za ka?dym razem <em>Mouse::getPosition()</em>, mimo ?e <em>getPosition()</em> zwraca nam pozycje jako <em>Vector2i</em>, my skorzystamy z <em>Vectora2f</em>, poniewa? wi?kszo?? metod z niego korzysta.</p>
+<p style="text-align: justify;"><em>Mouse::getPosition()</em> ma jeszcze opcjonalny argument jakim jest okno, wzgl?dem którego b?dzie liczona pozycja myszy, tzn w przypadku pe?nego ekranu mo?emy zostawi? to pole puste bo pozycja myszy b?dzie liczona wzgl?dem pulpitu, lecz je?li b?dziemy chcieli napisa? gr? w oknie to aby wszystko dzia?a?o poprawnie musimy doda? jako argument nasze okno, czyli <span class="lang:c++ decode:true crayon-inline">Mouse::getPosition(okno)</span>.</p>
+<p style="text-align: justify;">Kod poni?ej sprawia ?e gdy naje?d?amy kursorem nad napis to pod?wietla on si? na inny kolor.</p>
+
+<pre class="lang:c++ decode:true">for(int i=0;i&lt;ile;i++)
+	if(tekst[i].getGlobalBounds().contains(mouse))
+		tekst[i].setColor(Color::Cyan);
+	else tekst[i].setColor(Color::White);</pre>
+Screen poni?ej przedstawia nasze dzie?o w pe?nej okaza?o?ci
+<a href="http://oi60.tinypic.com/2irw55l.jpg"><img class="aligncenter" src="http://oi60.tinypic.com/2irw55l.jpg" alt="" width="482" height="271" /></a>
+<strong>Kod z tej lekcji:</strong>
+<a href="http://adf.ly/1QDejL">&gt;&gt;POBIERZ&lt;&lt;</a> | <a href="http://adf.ly/1QDelu" target="_blank">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>

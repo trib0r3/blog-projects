@@ -1,0 +1,148 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">Druga cz??? 3 lekcji, tutaj dowiesz si? jak napisa? kolizj? u?ywaj?c? bounding box'ów</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: left;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: left;"><a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%203%20cz.1.zip">Kod z poprzedniej lekcji</a></p>
+<p style="text-align: justify;">Podczas tej lekcji napiszemy system kolizji pomi?dzy graczem, a otoczeniem, jednak zanim przejdziemy dalej chcia?bym przedstawi? dok?adniej sposób wykrywania kolizji przedstawiony w tej lekcji.</p>
+<p style="text-align: justify;">Generalnie w ?wiecie 2D istnieje kilka sposobów wykrywania kolizji:</p>
+
+<ul style="text-align: justify;">
+	<li><strong>bounding box</strong> (box collider) metoda, któr? zajmiemy si? dzisiaj. Polega ona na "na?o?enie" czworok?ta na jaki? obiekt i sprawdzeniu czy box innego obiektu nie przecina naszego obiektu. Ten sposób ma tak? wad?, ?e jest ma?o dok?adny (mo?emy go zobaczy? na obrazku powy?ej).</li>
+	<li><strong>circle collider</strong> - analogiczna do box collider, tyle ?e zamiast czworok?ta u?ywa si? okr?gu, zwykle u?ywa si? go w po??czeniu z box collider</li>
+	<li><strong>polygon collider</strong> - zdecydowanie najdok?adniejszy sposób wykrywania kolizji, ale jednocze?nie najtrudniejszy w implementacji, skorzystamy z niego w kolejnych lekcjach tego poradnika</li>
+</ul>
+<p style="text-align: justify;">SFML posiada gotowe narz?dzia do tworzenia bounding box'ów, mi?dzy innymi do wykrywania kolizji pomi?dzy dwoma czworok?tami metod? <a href="http://www.sfml-dev.org/documentation/2.0/classsf_1_1Rect.php#a566740c8f58e01bb052266f47e7e1011" target="_blank">intersects</a>.</p>
+<p style="text-align: justify;">Zacznijmy od napisania kilku nowych metod w klasie <strong>Player</strong>.</p>
+
+<pre class="lang:c++ decode:true">sf::Vector2f Player::getPosition()
+{
+	return sprite.getPosition();
+}
+
+Player::Status Player::getStatus()
+{
+	return status;
+}
+
+sf::FloatRect Player::getBoundingBox()
+{
+	return sprite.getGlobalBounds();
+}
+
+sf::Vector2f Player::getSpeed()
+{
+	float rotacja = sprite.getRotation();
+	float vx = sin(( rotacja * M_PI ) / 180.0f );
+	float vy = -cos(( rotacja * M_PI ) / 180.0f );
+
+	return Vector2f(vx*speed,vy*speed);
+}</pre>
+<p style="text-align: justify;">Napisali?my sobie kilka metod pomocniczych: do pobrania pozycji (trzeba pami?ta?, ?e to pozycja ?rodka gracza), statusu (aby wiedzie? czy si? poruszamy), bounding box'a (do wykrywania kolizji) oraz do pobrania pr?dko?ci.</p>
+<p style="text-align: justify;">Przejd?my do klasy <strong>Engine</strong>, gdzie utworzymy sobie metod? <em>check_collision()</em>.</p>
+<p style="text-align: justify;">Teraz zaczyna si? ciekawa rzecz, w zasadzie mogliby?my utworzy? sobie podwójn? p?tl? o wymiarach poziomu i sprawdza? dla ka?dego kafla czy wykryto kolizj?, ale jest to ma?o efektywne.</p>
+<p style="text-align: justify;">Pierwszym krokiem wykrycia kolizji jest oczywi?cie pobrania box'a oraz zaktualizowanie go do takiej warto?ci gdyby gracz si? poruszy?.</p>
+
+<pre class="lang:c++ decode:true">void Engine::check_collision()
+{
+	if(player.getStatus() == Player::STOJ) return;
+
+	//pobranie aktualnej warto?ci boxa
+	FloatRect box1(player.getBoundingBox());
+
+	//zaktualizowanie go do warto?ci gdyby gracz si? ruszy?
+	box1.left += (player.getSpeed().x)/10; //dzielimy na 10 aby bardziej  zbli?y? si? do ?ciany
+	box1.top += (player.getSpeed().y)/10;</pre>
+<p style="text-align: justify;">Nast?pnie sprawdzamy 4 wierzcho?ki naszej figury, numer kafelka (dotyczy tablic dwuwymiarowych) o danej wspó?rz?dnej mo?na policzy? w ten sposób: <em>= pozycja (x lub y) / szeroko??_kafla</em> i co wa?ne zmienna musi by? typu int aby pozby? si? liczb po przecinku.</p>
+
+<pre class="lang:c++ decode:true">	//1
+	int x = box1.left/level.tile_width;
+	int y = box1.top/level.tile_height;
+
+	if(level.poziom[y][x].isWall &amp;&amp; box1.intersects(sprite[y][x].getGlobalBounds()))
+	{
+		player.stop();
+	}</pre>
+Kolejne wspó?rz?dne wierzcho?ków otrzymywa?em poprzez dodawanie szeroko?ci/wysoko?ci kafla do pozycji lewego górnego rogu. Oto wszystkie warunki:
+<pre class="lang:c++ decode:true">	/*
+	Schemat sprawdzania naszego boxa z ponumerowanymi wierzcholkami
+	1 ___ 2
+	|     |
+	3 ___ 4
+	*/
+
+	//1
+	int x = box1.left/level.tile_width;
+	int y = box1.top/level.tile_height;
+
+	if(level.poziom[y][x].isWall &amp;&amp; box1.intersects(sprite[y][x].getGlobalBounds()))
+	{
+		player.stop();
+	}
+
+	//2
+	x = (box1.left+level.tile_width)/level.tile_width;
+	y = box1.top/level.tile_height;
+	if(level.poziom[y][x].isWall &amp;&amp; box1.intersects(sprite[y][x].getGlobalBounds()))
+	{
+		player.stop();
+	}
+
+	//3
+	x = (box1.left)/level.tile_width;
+	y = (box1.top+level.tile_height)/level.tile_height;
+	if(level.poziom[y][x].isWall &amp;&amp; box1.intersects(sprite[y][x].getGlobalBounds()))
+	{
+		player.stop();
+	}
+
+	//4
+	x = (box1.left+level.tile_width)/level.tile_width;
+	y = (box1.top+level.tile_height)/level.tile_height;
+	if(level.poziom[y][x].isWall &amp;&amp; box1.intersects(sprite[y][x].getGlobalBounds()))
+	{
+		player.stop();
+	}
+}</pre>
+Ostatnim krokiem jest zmiana metody <em>Player::idz()</em> poprzez przeniesienie z niej <em>sprite.move(...)</em> do <em>update</em>.
+<pre class="lang:c++ decode:true ">void Player::update(sf::Vector2f mysz)
+{
+	Vector2f norm = mysz - sprite.getPosition();
+	float rot = atan2(norm.y,norm.x);
+	rot = rot * 180.f/M_PI;
+
+	rot += 90;
+	sprite.setRotation(rot);
+
+	if(anim_clock.getElapsedTime() &gt; sf::seconds(0.09f) )
+	{
+		if(status == STOJ) return;
+		if(frame &lt; 7 /*liczba klatek animacji*/)
+			frame++;
+		else
+			frame = 0; //zapetlanie animacji
+
+		sprite.setTextureRect(IntRect(frame*64,0,64,64));
+								//x, y, szerokosc, wysokosc
+
+		//poruszenie graczem
+		sprite.move(getSpeed());
+
+		anim_clock.restart();
+	}
+}</pre>
+<p style="text-align: justify;">Chcia?bym Was tak?e ostrzec, ?e ta metoda w obecnym przyk?adzie, czyli widoku z góry na posta?, która dodatkowo si? obraca jest ma?o efektywna, a to dlatego, ?e posta? w?a?nie si? obraca i nak?adany na ni? box nie zawsze jest tej samej wielko?ci, czasami jest szerszy, czasami w??szy zale?nie od rotacji, co nie wp?ywa dobrze na wykrywanie kolizji, du?o lepszym sposobem do wykrywania kolizji by?by circle collider. Ewentualnie mo?na doda? do obecnego sposobu kilka warunków aby nie zawsze sprawdza? kolizj? dla wszystkich rogów.</p>
+
+
+[caption id="" align="aligncenter" width="132"]<img src="https://sites.google.com/site/sheadovasdatabase/home/images/box%20collider.png" alt="" width="132" height="75" /> Zmiana rozmiaru box collidera[/caption]
+
+<strong>Kod ?ród?owy:</strong>
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%203.2.zip">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="https://github.com/sheadovas/Kurs_SFML/tree/master/Lekcja%203.2">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>

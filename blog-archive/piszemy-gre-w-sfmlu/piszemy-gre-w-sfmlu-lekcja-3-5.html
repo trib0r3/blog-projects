@@ -1,0 +1,107 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+
+<blockquote>
+<p style="text-align: justify;"><strong>@INFO:</strong> Chcia?bym wyja?ni? sk?d si? wzi??a nazwa <em>Lekcja 2-3</em>, otó? jest to zamiennik dla starej wersji lekcji 2 oraz lekcji 3, s? one wci?? dost?pne z poziomu kategorii =&gt; <em>Piszemy gr? w SFML'u</em>.</p>
+</blockquote>
+<p style="text-align: justify;">Lekcja 3 przy nieco innej koncepcji, tzn nie u?ywamy tekstur z jakiego? pliku, lecz tworzymy j? wewn?trz gry, nie wy?wietlamy tak?e mapy wczytywanej z pliku. Wszystko co zobaczymy w grze b?dzie wygenerowane przez nasz kod.</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: justify;">Niestety zmartwi? was nieco, je?li chodzi o kod konieczne jest pobranie tego kodu poni?ej, gdzie cofamy si? niemal do pierwszej lekcji. Polecam tak?e samodzieln? analiz? kodu.
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%203.3%20start.zip">DOWNLOAD</a></p>
+<p style="text-align: justify;">Gra b?dzie przypomina?a nieco gr? <em>Asteroids</em>, tylko ?e dodamy do niej par? featerów, ta koncepcja gry b?dzie finaln? i tutaj zajmiemy si? mi?dzy innymi du?o bardziej zaawansowan? kolizj?.</p>
+<p style="text-align: justify;">Je?eli mnie pos?ucha?e? to w kodzie powiniene? znale?? znaczniki <strong>//1</strong>, <strong>//2</strong>, itd. Teraz zajmiemy si? ich wyja?nianiem, zaczynamy od klasy <strong>Player</strong>.</p>
+<p style="text-align: justify;"><strong>//1</strong> - zmniejszy?a nam si? ilo?? statusów w jakie mo?e wej?? gracz, jest to spowodowane tym, ?e nie mamy ju? klatek animacji, STATUS_ALIVE oznacza ?e gracz jest ?ywy, DEAD oczywi?cie ?e jest martwy, obecnie nie b?d? one do niczego s?u?y?y, ale w przysz?o?ci dopiszemy tutaj specjalne efekty jakie mo?na b?dzie zebra? w grze np IMMORTAL.</p>
+<strong>//2</strong> i <strong>//4</strong>
+
+<img class="aligncenter" src="https://sites.google.com/site/sheadovasdatabase/home/images/gracz.png" alt="" width="100" height="100" />
+
+&nbsp;
+<p style="text-align: justify;">Masz tutaj pe?ne prawo nie wiedzie? o co chodzi, sk?d si? wzi?? jaki? <em>index</em> w <em>getPosition()</em>. Jest to spowodowane tym, ?e rysujemy w grze sobie wielok?t, <em>index</em> to odniesienie do pozycji odpowiedniego wierzcho?ka (wierzcho?ki odpowiednio s? ponumerowane na obrazku powy?ej).</p>
+
+<pre class="lang:c++ decode:true">Player::Player(void)
+{
+	shape.setPointCount(4);
+
+	shape.setPoint(0, sf::Vector2f(30, 40));
+	shape.setPoint(1, sf::Vector2f(40, 60));
+	shape.setPoint(2, sf::Vector2f(30, 30));
+	shape.setPoint(3, sf::Vector2f(20, 60));
+
+	shape.setOrigin(30,40);
+	shape.setPosition(50,100);
+
+	speed = 0;
+
+	vx = 0;
+	vy = 0;
+
+	shooting = false;
+}
+
+sf::Vector2f Player::getPosition(size_t index)
+{
+	shape.getPoint(index);
+}</pre>
+<p style="text-align: justify;">W konstruktorze nadajemy warto?? ile wierzcho?ków ma mie? nasza figura, a nast?pnie odpowiednim indeksom nadajemy odpowiednie wymiary, <em>setOrigin()</em> ustawia punkt wg którego b?dziemy obs?ugiwa? nasz? figur?, a naszym przypadku to ?rodek ci??ko?ci. Standardowo ka?da figura punkt origin ma ustawiony na lewy górny róg, teraz wszystkie operacje na tej figurze np <em>setPosition</em> b?d? robione wzgl?dem tego punktu, dzi?ki temu gdy b?dziemy obraca? nasz "statek" b?dzie si? on obraca? wokó? ?rodka, a nie bocznego punktu. Teraz <em>getPosition()</em> powinno by? jasne, a je?li nie to polecam sobie przetestowa? ten kod poprzez usuni?cie np <em>setOrigin</em>, zobaczycie ?e gdy gracz si? wtedy b?dzie obraca? b?dzie to robi? troch? w inny sposób.</p>
+<strong>//3</strong>
+<pre class="lang:c++ decode:true">void Player::accelerate()
+{
+	if(speed &lt; max_speed)
+	{
+		speed += 0.5;
+	}
+}
+
+void Player::rotate(int angle)
+{
+	shape.setRotation(angle);
+}</pre>
+<p style="text-align: justify;">Te dwie metody zast?pi?y nam metody <em>goDown</em>, <em>Up</em>, itd. i w zupe?no?ci nam wystarcz?, od teraz do poruszania si? w grze b?dziemy u?ywa? jedynie strza?ki w gór?, która b?dzie zwi?ksza?a pr?dko?? gracza oraz strza?ek w lewo/prawo które b?d? go obraca?y. K?t pod jaki gracz ma lecie? jest liczony w <em>update</em>.</p>
+<strong>//5</strong>
+<pre class="lang:c++ decode:true">void Player::update() //5
+{
+	float angle = shape.getRotation();
+
+	vx = sin(( angle * M_PI ) / 180.0f );
+	vy = cos(( angle * M_PI ) / 180.0f );
+
+	shape.move(vx*speed,vy*(-speed));
+}</pre>
+<p style="text-align: justify;">Je?li kiedykolwiek mówi?e? na matematyce: "do niczego w ?yciu nie przyda mi si? trygonometria: to by?e? w b??dzie, u?yjemy jej tutaj. Pr?dko?? x oraz y liczymy za pomoc? sinusa i cosinusa, przy czym warto?? cosinusa negujemy czyli zmieniamy mu znak, tutaj w kodzie zanegowa?em pr?dko??, ale w tym wypadku to akurat oboj?tne poniewa? to jest mno?enie. W argumentach sin i cos k?ty zamieniamy na radiany, bez tego kod by nie dzia?a? prawid?owo.</p>
+<p style="text-align: justify;">To tyle je?eli chodzi o omówienie tego kodu, dodam jedynie ?e zmieni?em w klasie <strong>Game</strong> par? rzeczy, m.in doda?em antyaliasing.</p>
+<p style="text-align: justify;">Nasz statek nie hamuje, co mo?e by? troch? utrudniaj?ce rozgrywk?, mimo ?e w kosmosie nie ma tarcia nie b?dziemy si? bawi? w a? tak? realistyk?. Dodam, ?e ta cz??? poni?ej powsta?a du?o pó?niej ni? to co wcze?niej, troch? pokombinowa?em oraz troch? wzorowa?em si? na pracy innych osób, ale wracajmy do naszego tutoriala.</p>
+<p style="text-align: justify;">Zacznijmy od stopniowego przyspieszania:</p>
+
+<pre class="lang:c++ decode:true">void Player::accelerate()
+{
+	float angle = shape.getRotation();
+
+	float xN = static_cast&lt;float&gt;(sin(speed * M_PI * (angle / 360)));
+	float yN = static_cast&lt;float&gt;(cos(speed * M_PI * (angle / 360)));
+
+	vx += xN * 0.2f;
+	vy -= yN * 0.2f;
+}</pre>
+<p style="text-align: justify;">Zmienili?my przeliczanie k?tów oraz u?yli?my <em>static_cast</em>, poniewa? chcemy koniecznie pracowa? tylko na typie <em>float</em>, w dodatku zmienili?my <em>angle/180</em> na <em>angle/360</em>, bez tego nasz statek by si? porusza? w z?? stron?. Jak wida? zmienili?my tak?e sposób nadawania pr?dko?ci, jest on stopniowy, <em>0.2f</em> wp?ywa na pr?dko?? z jak? przyspieszamy, jak wida? przy <strong>vy</strong> tutaj j? odejmujemy, poniewa? uk?ad wspó?rz?dnych nie jest taki jak kartezja?ski, tutaj warto?? Y ro?nie "id?c" w dó?.</p>
+<p style="text-align: justify;">Zmianie uleg?a tak?e metoda <em>update()</em></p>
+
+<pre class="lang:c++ decode:true ">void Player::update()
+{
+	shape.move(vx,vy);
+
+	vx = vx - vx * 0.02f;
+	vy = vy - vy * 0.02f;
+}</pre>
+<p style="text-align: justify;">Tutaj najwi?ksz? zmian? jest dodanie spowolnienia statku,a le zacznijmy omawianie od pocz?tku, teraz w <em>move()</em> przekazujemy gotowe warto?ci, tak?e znikn?? '-' sprzed <em>vy</em> poniewa? teraz jest w <em>accelerate</em>, dwie linie poni?ej spowalniaj? nasz statek, <em>0.02f</em> wp?ywa na szybko?? z jak? nasz statek zwalnia.</p>
+<p style="text-align: justify;">W nast?pnej lekcji zajmiemy si? wrogimi jednostkami.</p>
+<strong>Kod z tej lekcji</strong>
+<a href="http://adf.ly/1QDeup">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="http://adf.ly/1QDeyP">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>

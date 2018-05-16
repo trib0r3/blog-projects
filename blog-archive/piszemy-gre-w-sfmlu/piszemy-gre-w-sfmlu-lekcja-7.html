@@ -1,0 +1,676 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <!--more-->
+
+<span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span>
+
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%206.zip">Kod z poprzedniej lekcji</a>
+<p style="text-align: justify;">Dzisiaj zgodnie z zapowiedzi? zajmiemy si? dodaniem "specjalnych efektów" do menu, ale zanim do tego przejdziemy poprawny (tradycyjnie) kod z poprzedniej lekcji. Je?eli testowa?e? kod z poprzedniej lekcji to pewnie zauwa?y?e?, ?e po dodaniu bonusów po zako?czeniu fali napisy nie aktualizuj? si?. Bardzo ?atwo mo?na to naprawi?:</p>
+
+<pre class="lang:c++ decode:true">void Engine::update()
+{
+	player.update();
+	bullets_player.update();
+
+	asteroids.update();
+	collision();
+
+	//generowanie asteroid/nowa fala
+	if(asteroids.getSize() &lt;= 0)
+	{
+		nr_fali++;
+
+		liczba_asteroid = nr_fali*2;
+		asteroids.generate(liczba_asteroid);
+
+		czas_fali.restart();
+
+		//rozdajemy bonusy!
+		if(rand()%30&gt;20)player.addLifes();
+		if(rand()%30&gt;15)bullets_player.addAmmunition();
+		//nowe!!
+		napis[0].setString(str_napis[0]+toString(player.getLifes()));
+		napis[0].setPosition(10,10);
+
+		napis[2].setString(str_napis[2]+toString(bullets_player.getAmmo()));
+		napis[2].setPosition(1280-napis[2].getGlobalBounds().width-10,10);
+		//koniec nowego kodu
+	}
+
+	//aktualizowanie calego czasu gry
+	float czas = czas_gry.getElapsedTime().asSeconds();
+	napis[1].setString(toString(czas)+"s");
+	napis[1].setPosition(1280/2-napis[1].getGlobalBounds().width/2,10);
+
+	//aktualizowanie czasu bonusu
+	if(player.getSpecialEffectTime()==0)
+	{
+		Color color = napis[3].getColor();
+		if(color.a &gt; 0)
+		{
+			color.a-=5;
+			napis[3].setColor(Color(255,255,255,color.a));
+		}
+	}
+	else
+	{
+		Color color = napis[3].getColor();
+		if(color.a &lt; 255)
+		{
+			color.a+=5;
+			napis[3].setColor(Color(255,255,255,color.a));
+		}
+	}
+	napis[3].setString(str_napis[3]+toString(player.getSpecialEffectTime())+"s");
+	napis[3].setPosition(1280-10-napis[3].getGlobalBounds().width,700);
+}</pre>
+<p style="text-align: justify;">Postanowi?em tak?e poprawi? irytuj?cy mnie sposób w jaki strzela gracz, mianowicie nie podoba mi si? to, ?e je?eli si? poruszamy w przód i nagle pu?cimy gaz i obrócimy si? to wystrzelony w ten sposób pocisk wystrzeli w tym kierunku w którym ostatnio by? pojazd podczas przyspieszania. Mo?na to zmieni? zmieniaj?c kod w ten sposób:</p>
+
+<pre class="lang:c++ decode:true">Vector2f Player::getAngle()
+{
+	float angle = shape.getRotation();
+
+	float xN = static_cast&lt;float&gt;(sin(2 * M_PI * (angle / 360)));
+	float yN = static_cast&lt;float&gt;(cos(2 * M_PI * (angle / 360)));
+
+	return Vector2f(xN,-yN);
+}</pre>
+
+<hr />
+
+<h1></h1>
+<h1><strong>Efekty specjalne</strong></h1>
+<p style="text-align: justify;">Przejd?my do meritum naszej lekcji, czyli do efektów specjalnych. Czym one w ogóle s?? Na pewno spotka?e? si? z nimi podczas grania w gry, najprostsze z nich to przyciemnienie ekranu, ale poka?? wam tak?e jak w ?atwy sposób mo?na zrobi? ekran ?adowania. Móg?by? powiedzie?, ?e lepiej by?oby u?y? shaderów w celu upi?kszenia naszej gry, jednak nimi zajmiemy si? kiedy indziej.</p>
+<p style="text-align: justify;">Teraz b?d? pracowa? na projekcie "testowym", aby w szybszy sposób wy?wietli? wam dzia?anie specjalnych efektów oraz dlatego, ?e w wi?kszo?ci tych efektów nie u?yjemy w naszym g?ównym projekcie, chc? jedynie pokaza? ci przyk?ady jak w ?atwy sposób mo?na wiele osi?gn??. Do testów wystarczy nam dowolny obraz.</p>
+
+<pre class="lang:c++ decode:true">#include &lt;SFMLGraphics.hpp&gt;
+
+using namespace sf;
+
+const int WIDTH = 1280;
+const int HEIGHT = 720;
+
+int main()
+{
+	RenderWindow window(VideoMode(WIDTH,HEIGHT),"Efekty specjalne",Style::Close);
+
+	//wczytywanie tekstury
+	Texture t;
+	t.loadFromFile("picture.jpg");
+
+	Sprite obraz(t);
+
+	//petla glowna programu
+	while(window.isOpen())
+	{
+		Event event;
+		while(window.pollEvent(event))
+		{
+			//zamykanie okna
+			if(event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
+				window.close();
+		}
+		window.clear();
+
+		window.draw(obraz);
+
+		window.display();
+	}
+}</pre>
+<p style="text-align: justify;">Zgodnie z przewidywaniami po prostu sobie go wy?wietlili?my. Mo?esz si? zastanawia? co z nim jeszcze zrobimy?</p>
+
+<ul style="text-align: justify;">
+	<li>dodamy efekt przyciemniaj?cy ekran,</li>
+	<li>analogicznie jak u góry tylko rozja?niaj?cy,</li>
+	<li>po??czenie dwóch powy?ej,</li>
+	<li>bardziej ruchome menu,</li>
+	<li>przyk?ady innych "specjalnych efektów"</li>
+</ul>
+
+<hr />
+
+<h3 style="text-align: justify;"></h3>
+<h3 style="text-align: justify;"><strong>Przyciemnienie ekranu</strong></h3>
+<p style="text-align: justify;">Je?eli pami?tasz ostatni? lekcj? i sposób w jaki powodowali?my, ?e czas do ko?ca bonusu znika? to by? mo?e domy?lasz si? w jaki sposób przyciemnimy ekran. B?dziemy po prostu rysowali kwadrat o rozmiarach naszego okna i zmieniali jego warto?? alpha. Tworzymy klas? <strong>SpecialEffects</strong>, która b?dzie tak wst?pnie wygl?da?a:</p>
+
+<pre class="lang:c++ decode:true">//SpecialEffects.h
+#pragma once
+#include &lt;SFMLGraphics.hpp&gt;
+
+using namespace sf;
+
+class SpecialEffects:public Drawable
+{
+public:
+	SpecialEffects(int width,int height);
+	~SpecialEffects(void);
+
+private:
+	RectangleShape rect;
+	int alpha;
+
+	virtual void draw(sf::RenderTarget &amp;target,sf::RenderStates states) const;
+};</pre>
+<p style="text-align: justify;">Za chwil? utworzymy wi?cej metod, które sprawi?, ?e b?dziemy mogli w ?atwy sposób manipulowa? specjalnymi efektami.</p>
+
+<pre class="lang:c++ decode:true">//SpecialEffects.cpp
+#include "SpecialEffects.h"
+
+SpecialEffects::SpecialEffects(int width,int height)
+{
+	rect.setSize(Vector2f(width,height));
+	rect.setFillColor(Color(0,0,0,0));
+
+	alpha = 0;
+}
+
+SpecialEffects::~SpecialEffects(void)
+{
+}
+
+void SpecialEffects::draw(sf::RenderTarget &amp;target, sf::RenderStates states) const
+{
+	target.draw(rect);
+}</pre>
+<p style="text-align: justify;">W zasadzie mo?esz si? zapyta? dlaczego piszemy do tak prostych czynno?ci jak zmiana kana?u przezroczysto?ci specjaln? klas?. Tutaj cz??ciowo masz racj?, mo?na takie co? napisa? bardzo szybko w samej grze, ale ta klasa przyspieszy nam pisanie podobnych rzeczy w przysz?ych projektach gier, nawet je?eli nie b?d? w SFML'u to b?dziesz mia? zrobiony w du?ej cz??ci szkielet, który w ?atwy sposób mo?na b?dzie dostosowa? do innych bibliotek. Czas na utworzenie pierwszego efektu: przyciemniania ekranu:</p>
+<p style="text-align: justify;">Tworzymy zmienne int: mod,granica i ustawiamy je na 0. Tworzymy tak?e bool in_progress i ustawiamy w konstruktorze na false. Dodajemy tak?e metody (void): przyciemnij(), update():</p>
+
+<pre class="lang:c++ decode:true">void SpecialEffects::przyciemnij()
+{
+	in_progress = true;
+	mod = 5;
+	granica = 255;
+}</pre>
+<p style="text-align: justify;">Tutaj wyja?ni? ci do czego s?u?? te zmienne. <strong>in_progress</strong> s?u?y do sprawdzenia czy ju? jaki? efekt jest wykonywany, <strong>mod</strong> to modyfikator, który decyduje o ile ma si? zmienia? kana? alfa (wybaczcie mi je?eli pisz? od czasu do czasu zamiast polskiej "alfy" = "alpha", jest to takie przyzwyczajenie). Natomiast <strong>granica</strong> s?u?y do ograniczenia zmniejszania/zwi?kszania kana?u przezroczysto?ci.</p>
+
+<pre class="lang:c++ decode:true">void SpecialEffects::update()
+{
+	if(in_progress)
+	{
+		alpha+=mod;
+
+		if(alpha==granica)
+			in_progress = false;
+
+		rect.setFillColor(Color(0,0,0,alpha));
+	}
+}</pre>
+<p style="text-align: justify;">Metoda update s?u?y do zaktualizowania zmian na naszym ekranie. Pewnie jeste? ciekawy jak to si? prezentuje? Na chwil? obecn? wrzucam jedynie kod:</p>
+
+<pre class="lang:c++ decode:true">#include &lt;SFMLGraphics.hpp&gt;
+#include "SpecialEffects.h"
+
+using namespace sf;
+
+const int WIDTH = 1280;
+const int HEIGHT = 720;
+
+int main()
+{
+	RenderWindow window(VideoMode(WIDTH,HEIGHT),"Efekty specjalne",Style::Close);
+
+	//wczytywanie tekstury
+	Texture t;
+	t.loadFromFile("picture.jpg");
+	Sprite obraz(t);
+
+	//inne
+	SpecialEffects special(WIDTH,HEIGHT);
+
+	//petla glowna programu
+	while(window.isOpen())
+	{
+		Event event;
+		while(window.pollEvent(event))
+		{
+			//zamykanie okna
+			if(event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
+				window.close();
+			if(Keyboard::isKeyPressed(Keyboard::Num1))
+				special.przyciemnij();
+		}
+		special.update();
+
+		window.clear();
+
+		window.draw(obraz);
+		window.draw(special);
+
+		window.display();
+	}
+}</pre>
+Wa?ne jest aby rysowanie obiektu <strong>SpeciallEffect</strong> odbywa?o si? <span style="text-decoration: underline;">po narysowaniu</span> wszystkich innych obiektów, czyli na samym ko?cu, inaczej nasz prostok?t zosta?by zas?oni?ty przez inne obiekty. Wa?ne jest tak?e wywo?anie metody update(), inaczej nic si? nie stanie (ekran si? nie przyciemni).
+
+<hr />
+
+<h3></h3>
+<h3><strong>Rozja?nianie ekranu</strong></h3>
+Ten element wykonuje si? niemal w identyczny sposób jak przyciemnienie:
+<pre class="lang:c++ decode:true">void SpecialEffects::rozjasnij()
+{
+	in_progress = true;
+	mod = -5;
+	granica = 0;
+}</pre>
+Rozja?nianie przyporz?dkowujemy sobie pod klawisz [2], dodatkowo w update() zabezpieczymy si? przed b??dem który powoduje uruchomienie dwa razy tego samego efektu:
+<pre class="lang:c++ decode:true">void SpecialEffects::update()
+{
+	if(in_progress)
+	{
+		if(alpha != granica)
+			alpha+=mod;
+
+		if(alpha==granica)
+			in_progress = false;
+
+		rect.setFillColor(Color(0,0,0,alpha));
+	}
+}</pre>
+Filmik, który pokazuje dzia?anie kodu w obecnym momencie, jednak musz? ci powiedzie?, ?e jest on lekko oszukany poniewa? fraps zablokowa? ilo?? klatek do 60, wi?c je?eli uruchomisz kod na swoim komputerze wszystko rozja?ni si? du?o szybciej:
+<p style="text-align: center;"><iframe width="560" height="315" src="//www.youtube.com/embed/5chPYQBe4-0" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>
+
+
+<hr />
+
+<h3></h3>
+<h3><strong>Rozja?nianie + przyciemnianie ekranu i vice versa</strong></h3>
+<p style="text-align: justify;">Teraz zajmiemy si? czym? co mo?na wykorzysta? w splashscreenach, które po prostu wy?wietlaj? si? jedynie aby np. zaprezentowa? na jakim silniku jest gra, gdzie na pocz?tku widzimy ciemny ekran, nast?pnie zostaje rozja?niony ekran + wy?wietlane logo firmy i znowu zostaje przyciemniony ekran aby go rozja?ni? pokazuj?c menu lub kolejny splashscreen (my?l? ?e wiecie o co mi chodzi).</p>
+<p style="text-align: justify;">Do tego napiszemy sobie kolejk?, wg której b?d? wykonywane zadania. Do tego wykorzystamy struktur? danych <strong>queue</strong>, jest to jedna z wielu przydatnych struktur STL, z tymi strukturami spotka?e? si? ju? wcze?niej w tym tutorialu, np z vectorem (nie myli? z Vector2f!), je?eli nie spotka?e? si? wcze?niej z adapterem kolejki to polecam zajrze? <a href="http://cpp0x.pl/kursy/Kurs-STL-C++/Adapter-kolejki-std-queue/117" target="_blank">TUTAJ</a>.</p>
+<p style="text-align: justify;">Do pliku nag?ówkowego naszej klasy dodajemy <strong>#include &lt;queue&gt;</strong> oraz w dost?pie publicznym <strong>enum TYPE {ROZJASNIJ,PRZYCIEMNIJ}</strong> oraz metod? <strong>void dodaj(TYPE type)</strong>, a jako prywatn?<strong> std::queue &lt;TYPE&gt; kolejka</strong>. Ju? t?umacz? co do czego s?u?y, nasz <strong>enum</strong> okre?la jakiego typu zadanie ma by? wykonane, <strong>kolejka</strong> to po prostu "zmienna" przechowuj?ca elementy kolejki. Zadaniem <strong>dodaj(...)</strong> jest dodanie do kolejki kolejnych zada?/elementów:</p>
+
+<pre class="lang:c++ decode:true">void SpecialEffects::dodaj(TYPE type)
+{
+	kolejka.push(type);
+}</pre>
+<p style="text-align: justify;">Zmieni?a nam si? metoda update():</p>
+
+<pre class="lang:c++ decode:true">void SpecialEffects::update()
+{
+	if(!kolejka.empty() &amp;&amp; !in_progress)
+	{
+		switch(kolejka.front())
+		{
+		case ROZJASNIJ:
+			rozjasnij();
+			kolejka.pop();
+			break;
+		case PRZYCIEMNIJ:
+			przyciemnij();
+			kolejka.pop();
+			break;
+		}
+	}
+
+	if(in_progress)
+	{
+		if(alpha != granica)
+			alpha+=mod;
+
+		if(alpha==granica)
+			in_progress = false;
+
+		rect.setFillColor(Color(0,0,0,alpha));
+	}
+}</pre>
+<p style="text-align: justify;">Teraz przed sprawdzeniem czy jest co? ju? w trakcie wykonywania (jaki? efekt) sprawdzamy czy nasza kolejka nie jest pusta oraz czy nie wykonuje si? ?adne zadanie (np. przyciemnianie ekranu), nast?pnie s? wywo?ywane odpowiednie metody i usuwamy to zadanie z kolejki. U?ycie tej metody jest bardzo proste:</p>
+
+<pre class="lang:c++ decode:true">//wykorzystanie kolejki
+else if(event.type == Event::KeyReleased &amp;&amp; event.key.code == Keyboard::Num3)
+{
+	special.dodaj(special.PRZYCIEMNIJ);
+	special.dodaj(special.ROZJASNIJ);
+}</pre>
+<p style="text-align: justify;">Po prostu dodajemy do kolejki odpowiednie polecenia i zostan? one wykonane. Warto zaznaczy? dlaczego u?y?em tutaj innego systemu sprawdzenia wci?ni?cia klawisza, a to dlatego ?e poprzednia instrukcja warunkowa dublowa?a dodawanie zada? do kolejki poniewa? dodawa?a je dla stanu klawisza wci?ni?tego (KeyPressed) oraz puszczonego (KeyReleased).</p>
+<p style="text-align: justify;">Teraz kolejka wykonuje si? od razu wi?c chwil? po wykonaniu jednego zadania rozpoczyna si? kolejne, ale spowolnieniem tego zajmiemy si? pó?niej.</p>
+
+
+<hr />
+
+<h3></h3>
+<h3><strong>Usprawnienie menu</strong></h3>
+<p style="text-align: justify;">Teraz zajmiemy si? elementami, które mog? sprawi?, ?e menu wyda si? bardziej atrakcyjne dla gracza. Generalnie mo?e wiele elementów na sprawienie, ?e menu b?dzie ?adniej wygl?da?o dla gracza. Jeden z takich elementów nasze menu ju? posiada i napisali?my je ju? w pierwszej lekcji (o ile mnie pami?? nie myli), by?o to pod?wietlanie napisów gdy naje?d?a na nie myszka. Ju? dzi?ki temu prostemu zabiegowi gra wygl?da profesjonalniej.</p>
+<p style="text-align: justify;"><strong>1.</strong>
+W menu powinny by? jakie? elementy, które si? w jaki? sposób zmieniaj?, do pod?wietlania napisów zapraszam do <a href="http://unknown/piszemy-gre-w-sfmlu-lekcja-1/" target="_blank">lekcji 1</a>.</p>
+<p style="text-align: justify;"><strong>2.</strong>
+Innym elementem mo?e by? np odrobin? za du?e t?o, lub po prostu jaki? element, który si? porusza w minimalny sposób gdy poruszamy myszk?, co? w takim stylu:</p>
+<p style="text-align: center;"><iframe width="560" height="315" src="//www.youtube.com/embed/DHvnLK95XnM" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>
+<p style="text-align: justify;">Co? podobnego jak na filmiku powy?ej w?a?nie napiszemy, taki efekt jak powy?ej mo?na osi?gn?? za pomoc? poruszania wi?kszego obrazka ni? ekran oraz elementów pasuj?cych do niego lecz nie umieszczonych bezpo?rednio na nim, poruszaj?c nim w odpowiedni sposób osi?gniemy odpowiedni efekt.</p>
+<p style="text-align: justify;">Wykorzystamy nasz obrazek co wcze?niej tylko o nieco wi?kszych rozmiarach ni? 1280x720, czyli 1300x731. Nast?pnie ustawmy Origin na jego ?rodek (<strong>obraz.setOrigin(650,365.5)</strong>) oraz ustawmy go na ?rodku (<strong>obraz.setOrigin(650,365.5)</strong>), te instrukcje wpisujemy zaraz po za?adowaniu obrazka do programu. Teraz przyda?oby si? nam wiedzie?, w któr? stron? gracz poruszy? myszk?.</p>
+<p style="text-align: justify;">If w p?tli zdarze? wygl?da nast?puj?co:</p>
+
+<pre class="lang:c++ decode:true">//poruszanie obrazem
+if(event.type == Event::MouseMoved)
+{
+	Vector2f p(Mouse::getPosition(window));
+	Vector2f s(obraz.getPosition());
+
+	if(p.x &gt; d.x &amp;&amp; s.x + 630 &lt; WIDTH)
+		obraz.move(1,0);
+	else if(p.x &lt; d.x &amp;&amp; s.x - 630 &gt; 0)
+		obraz.move(-1,0);
+
+	if(p.y &lt; d.y &amp;&amp; s.y - 354.5 &gt; 0)
+		obraz.move(0,-0.5);
+	else if(p.y &gt; d.y &amp;&amp; s.y + 354.5 &lt; HEIGHT)
+		obraz.move(0,0.5);
+
+	d.x = p.x;
+	d.y = p.y;
+}</pre>
+<p style="text-align: justify;">Wyja?nijmy go nieco, <strong>p</strong> to pozycja myszy wzgl?dem okna, <strong>s</strong> to punkt ?rodka t?a. Na czym polega sprawdzanie w któr? stron? poruszy?a si? mysz? Polega na sprawdzeniu jak pozycja myszy ma si? do pozycji myszy podczas ostatniej aktualizacji, je?eli x'owa punktu p jest wi?ksza to mysz musia?a poruszy? si? w prawo, kolejny warunek sprawdza czy mo?na poruszy? obrazkiem, zapobiega on sytuacji gdy obrazek poruszy si? za daleko, tak aby nie pokaza? czarnego t?a. W jaki sposób jest to liczone? s.x to pozycja ?rodka obrazka, aby uzyska? praw? kraw?d? (w przypadku lewej odejmujemy) obrazka nale?y doda? po?ow? jego szeroko?ci. Tylko ?e my mamy t?o wi?ksze ni? obrazek, a wi?c dodajemy warto?? która nam wychodzi ze wzoru:</p>
+
+<blockquote>= szeroko??_okna/2 - (szeroko??_t?a - szeroko??_okna)/2</blockquote>
+<p style="text-align: justify;">Nast?pnie sprawdzamy czy ta warto?? jest mniejsza od szeroko?ci okna. Je?eli zastanawiasz si? sk?d si? wzi?? ten dziwny wzór to powsta? on w trakcie eksperymentów jak napisa? kod aby by?o dobrze ;) Analogicznie post?pi?em z reszt? warunków. Efekt wygl?da nast?puj?co:</p>
+<p style="text-align: center;"><iframe width="560" height="315" src="//www.youtube.com/embed/We0GSkv5Qw4" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>
+<strong>3.
+</strong>Kolejnym i ostatnim ze sposobów jakie tu zaprezentuje jest wykorzystanie tego co ju? napisali?my w grze. W naszym wypadku mo?na zmusi? do pracy asteroidy, które b?d? lata?y po menu. Jest to bardzo fajny element do menu, czasami wykorzystywany przez twórców, jednak kod jak takie co? zrobi? zaprezentuje na samym ko?cu tej lekcji gdzie wt?ocz? do projektu par? zaprezentowanych tutaj sposób na urozmaicenie naszej gry.
+
+<hr />
+
+<h3></h3>
+<h3><strong>Loadingscreen</strong></h3>
+<p style="text-align: justify;">Prawie zapomnia?em o loading screenach, czy te? ekranach ?adowania je?eli kto? woli w j?zyku polskim. Nie b?dziemy si? tutaj nad nimi rozwodzi?, przydaj? si? w wi?kszych produkcjach gdzie jest wi?cej elementów do wczytania, u nas by?my zobaczyli jedynie ich migni?cie, ale wspomn? jak je mo?na zrobi?. Najwi?kszy problem pojawia si? gdyby?my chcieli wczyta? du?y/o plik/ów i jednocze?nie wy?wietli? w tle jak?? animacj?. Przy wczytywaniu du?ych plików nasze okno by si? zawiesi?o gdyby?my zrobili to w "tradycyjny" sposób, poniewa? korzystaliby?my tylko z jednego w?tku (threads) - g?ównego, który zaj??by si? tylko wczytywaniem plików, aby wy?wietli? jak?? animacj? nale?y odpali? w?tek "poboczny". C++ wyposa?one jest w w?tki jednak SFML tak?e je posiada. Aby dowiedzie? si? co i jak zapraszam <a href="http://sfml-dev.org/tutorials/2.0/system-thread.php" target="_blank">&gt;&gt;TUTAJ&lt;&lt;</a>.</p>
+
+
+<hr />
+
+<h2 style="text-align: justify;"></h2>
+<h2 style="text-align: justify;">Implementacja niektórych elementów do naszej gry</h2>
+<p style="text-align: justify;">My nie wykorzystamy ?adnych elementów z klasy <strong>SpecialEffects</strong>, zrobimy 2 rzeczy: wykorzystamy asteroidy jako t?o dla menu oraz poprawimy wygl?d pocisków. Je?eli chcecie abym doda? np. splashscreena to napiszcie o tym w komentarzu. Zaczniemy od dodania t?a z asteroid.</p>
+<p style="text-align: justify;">W <strong>Game</strong> w <strong>menu()</strong> tworzymy obiekt <strong>Asteroids</strong>, nast?pnie generujemy pasuj?c? nam ilo?? asteroid oraz pami?tamy o u?yciu z Asteroids metody <strong>update()</strong> oraz narysowaniu tych obiektów zaraz po wyczyszczeniu okna. Przy okazji poprawmy ma?y b??d w generowaniu Asteroid, który polega? na tym, ?e asteroidy generowa?y si? zawsze w 1 punkcie, który losowa? si? tylko raz. Mo?na go naprawi? w ?atwy sposób, mianowicie nazwy argumentów w metodzie zmieniamy na _x i _y oraz tworzymy zmienne o nazwie x, y przed p?tl?. Oto jak metoda wygl?da po zmianach:</p>
+
+<pre class="lang:c++ decode:true">void Asteroids::generate(int ile,int _x, int _y)
+{
+	srand(time(NULL));
+
+	int x = _x;
+	int y = _y;
+
+	for(int i=0;i&lt;ile;i++)
+	{
+		Asteroid ast;
+		ast.big = false;
+
+		if(_x==0 &amp;&amp; _y==0)
+		{
+			if(rand()%10&gt;4)ast.big=true; else ast.big=false;
+
+			if(rand()%1000 &gt;= 500)
+			{
+				x = -5;
+				y = rand()%720;
+			}
+			else
+			{
+				x = rand()%1280;
+				y = -5;
+			}
+
+		}
+		int radius = 40;
+		if(ast.big) radius*=1.5;
+
+		//generowanie figury
+		ConvexShape shape;
+		shape.setPointCount((rand()%3)+5);
+
+		int size = shape.getPointCount();
+
+		for(int j=0;j&lt;size;j++)
+		{
+			float alpha = rand()%(360/size)+j*(360/size);
+			alpha=(alpha*M_PI)/180;
+			shape.setPoint(j,Vector2f(x+cos(alpha)*radius,y+sin(alpha)*radius));
+		}
+		shape.setOrigin(shape.getPoint(0));
+
+		shape.setOutlineColor(Color::White);
+		shape.setFillColor(Color::Transparent);
+
+		shape.setOutlineThickness(1);
+		shape.setPosition(x,y);
+
+		ast.shape = shape;
+
+		//ustawianie pr?dko?ci
+		float vx,vy;
+
+		vx = (rand()%2)+1;
+		vy = (rand()%2)+1;
+
+		if(rand()%2==0) vx*=-1;
+		if(rand()%2==0) vy*=-1;
+
+		ast.speed = Vector2f(vx/1.5,vy/1.5);
+
+		m_asteroids.push_back(ast);
+	}
+}</pre>
+<p style="text-align: justify;">W <strong>Game</strong>, metoda <strong>update</strong> wygl?da w nast?puj?cy sposób po dodaniu 4 linijek (utworzenie obiektu Asteroids: <strong>Asteroids asteroids</strong>, wygenerowaniu 20 asteroid: <strong>asteroids.generate(20)</strong>, zaktualizowaniu ich <strong>asteroids.update()</strong> oraz narysowaniu: <strong>window.draw(asteroids)</strong>).</p>
+
+<pre class="lang:c++ decode:true">void Game::menu()
+{
+	Text title("Mechanized Techno Explorer",font,80);
+	title.setStyle(Text::Bold);
+
+	title.setPosition(1280/2-title.getGlobalBounds().width/2,20);
+
+	const int ile = 2;
+
+	Text tekst[ile];
+
+	string str[] = {"Play","Exit"};
+
+	for(int i=0;i&lt;ile;i++)
+	{
+		tekst[i].setFont(font);
+		tekst[i].setCharacterSize(65);
+
+		tekst[i].setString(str[i]);
+		tekst[i].setPosition(1280/2-tekst[i].getGlobalBounds().width/2,250+i*120);
+	}
+
+	bool b;
+	//opcje
+	fstream file("config.cfg");
+	if(file.is_open())
+		file &gt;&gt; b;
+	else
+		b=true;
+	file.close();
+
+	Text options;
+	string s="Music &amp; Sounds: ";
+	if(b==true)
+			options.setString(s+"ON");
+	else
+		options.setString(s+"OFF");
+
+	options.setFont(font);
+	options.setCharacterSize(20);
+	options.setPosition(10,10);
+
+	audio.loadMusic(true);
+	audio.loadSounds();
+
+	audio.playMusic();
+
+	audio.setVolume(!b);
+
+	//Asteroidy
+	Asteroids asteroids;
+	asteroids.generate(20);
+
+	while(state == MENU)
+	{
+		Vector2f mouse(Mouse::getPosition(window));
+		Event event;
+
+		while(window.pollEvent(event))
+		{
+			//Wci?ni?cie ESC lub przycisk X
+			if(event.type == Event::Closed || event.type == Event::KeyPressed &amp;&amp;
+				event.key.code == Keyboard::Escape)
+				state = END;
+
+			//klikni?cie MENU
+			else if(tekst[0].getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				audio.stopMusic();
+				audio.playSound(Audio::T_CLICK);
+				state = GAME;
+			}
+
+			//klikni?cie EXIT
+			else if(tekst[1].getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				state = END;
+				audio.playSound(Audio::T_CLICK);
+			}
+
+			//wyciszenie/wlaczenie muzyki
+			else if(options.getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				if(b)
+				{
+					b=false;
+					options.setString(s+"OFF");
+				}
+				else
+				{
+					b=true;
+					options.setString(s+"ON");
+				}
+				audio.setVolume(!b);
+				audio.playSound(Audio::T_CLICK);
+			}
+		}
+		for(int i=0;i&lt;ile;i++)
+			if(tekst[i].getGlobalBounds().contains(mouse))
+			{
+				if(tekst[i].getColor()==Color::White)
+				{
+					audio.playSound(Audio::T_MENU);
+				}
+				tekst[i].setColor(Color::Cyan);
+			}
+			else tekst[i].setColor(Color::White);
+
+		if(options.getGlobalBounds().contains(mouse))
+		{
+			options.setColor(Color::Cyan);
+		}
+		else
+			options.setColor(Color::White);
+
+		window.clear();
+
+		//asteroids.update();
+		window.draw(asteroids);
+
+		window.draw(title);
+		for(int i=0;i&lt;ile;i++)
+			window.draw(tekst[i]);
+
+		window.draw(options);
+
+		window.display();
+	}
+	unmute = b;
+}</pre>
+<p style="text-align: justify;">Sprawienie aby pociski by?y bardziej widoczne polega na zamienieniu w klasie <strong>Bullet</strong> wykorzystywanego obiektu<strong> VertexArray</strong> na vector klasy <strong>CircleShape</strong> i podmianie metod odpowiednich dla vectora. Zmianie zosta?o poddane bardzo du?a cz??? metod, elementy które zmieniono s? oznaczone <span style="color: #00ff00;">//</span>, poni?ej wszystkie metody które zmieni?em.</p>
+
+<pre class="lang:c++ decode:true ">Bullet::Bullet(bool can, int f,bool inf)
+{
+	can_hurt_player = can;
+
+	color = Color::White;
+	frequency = milliseconds(f);
+
+	infinite = inf;
+	ammunition = 500;
+//usunalem linie dotyczaca VertexArray
+}
+//---------------------------------------
+void Bullet::add(Vector2f f,Vector2f pos)
+{
+	//
+	CircleShape c;
+	c.setPosition(pos);
+	c.setFillColor(color);
+	c.setRadius(2);
+
+	if(timer.getElapsedTime() &gt;= frequency &amp;&amp; (ammunition &gt; 0 || infinite))
+	{
+		m_bullet.push_back(c);
+		factor.push_back(f);
+
+		timer.restart();
+		ammunition--;
+	}
+}
+//---------------------------------------
+void Bullet::update()
+{
+	for(int i=0;i&lt;factor.size();i++)
+	{
+		m_bullet[i].move(Vector2f(factor[i].x*2,factor[i].y*2));//
+		Vector2f position(m_bullet[i].getPosition());
+
+		if(position.x &gt;= 1280 || position.x &lt;= 0 ||
+			position.y &gt;= 720 || position.y &lt;= 0) //
+		{
+			remove(i);
+		}
+	}
+}
+//---------------------------------------
+void Bullet::draw(RenderTarget &amp;target, RenderStates states) const
+{
+	states.transform *= getTransform();
+
+	states.texture = NULL;
+
+	for(int i=0;i&lt;m_bullet.size();i++)//
+		target.draw(m_bullet[i],states);
+}
+//---------------------------------------
+bool Bullet::isEmpty()
+{
+	if(m_bullet.size() &lt;= 0)//
+		return true;
+	else
+		return false;
+}
+//---------------------------------------
+Vector2f Bullet::getPoint(int index)
+{
+	Vector2f p = m_bullet[index].getPosition();//
+	return p;
+}
+//---------------------------------------
+int Bullet::getSize()
+{
+	return m_bullet.size();//
+}</pre>
+
+<hr />
+
+<h2></h2>
+<h2><strong>Podsumowanie</strong></h2>
+<p style="text-align: justify;">Dzisiaj stworzyli?my sporo rzeczy i ma?? cz??? z nich wykorzystali?my w naszej grze, teraz powiniene? ju? wiedzie? w mniej wi?cej jaki sposób mo?na urozmaici? gr?. Je?eli chcesz abym pokaza? jak doda? jaki? efekt do naszej gry to pisz w komentarzu. Tak samo w przypadku gdy masz jakie? pytanie, znalaz?e? b??d lub masz jak?? uwag? do mnie. Na koniec filmik z gry oraz oczywi?cie kod ?ród?owy zarówno do lekcji jak i "efektów specjalnych".</p>
+<p style="text-align: center;"><iframe width="560" height="315" src="//www.youtube.com/embed/QlNWk1ccsQo" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>
+<strong>Kod ?ród?owy</strong>
+<a href="http://adf.ly/1QDffE">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="http://adf.ly/1QDfhU">&gt;&gt;GitHub&lt;&lt;</a>
+<p style="text-align: right;"><a href="http://unknown/piszemy-gre-w-sfmlu-zakonczenie/">Nast?pna lekcja -&gt;</a></p>
+        </body>
+    </html>

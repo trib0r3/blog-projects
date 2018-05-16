@@ -1,0 +1,248 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">Podczas tej lekcji zajmiemy si? poruszaniem postaci po mapie oraz animacj?.</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;">Kod z poprzedniej lekcji jest <a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%201.zip">tutaj</a>.</p>
+<p style="text-align: justify;">Przed rozpocz?ciem dalszej pracy warto przygotowa? sobie materia?y do dzisiejszej lekcji. B?dziemy potrzebowali oczywi?cie poszczególnych klatek animacji, dzi?ki którym nie b?dziemy poruszali statycznym obrazkiem. Do tego celu ja u?yj? gotowego <em>assetu</em>:</p>
+<p style="text-align: left; padding-left: 30px;"><a href="http://opengameart.org/content/top-down-mage-animations">Warlock's Gauntlet artists - rAum, jackFlower, DrZoliparia, Neil2D</a>,</p>
+<p style="text-align: justify;">konkretnie obrazka <em>player-move.png</em>.</p>
+<p style="text-align: justify;">Jak zauwa?y?e? wszystkie klatki animacji s? w 1 obrazku takie co? nazywamy atlasem animacji, ale mo?esz tak?e spotka? nazwy angloj?zyczne t.j.: <em>spritesheet</em>, <em>tileset</em> (w przypadku kafelków).</p>
+<p style="text-align: justify;">Na pocz?tku dodajemy 2 klasy: <strong>Engine</strong> oraz <strong>Player</strong>. Czym b?d? si? one zajmowa?y?</p>
+
+<ul>
+	<li style="text-align: justify;"><strong>Engine</strong> b?dzie zarz?dza?o nasz? gr?, czyli animacjami, obiektami na scenie, kolizjami, itd.</li>
+	<li style="text-align: justify;">Klasa <strong>Player</strong> jest nasz? reprezentacj? gracza w kodzie gry, ta klasa przechowuje wszystkie potrzebne nam informacje o graczu (pozycj?, pr?dko??, itd).</li>
+</ul>
+<p style="text-align: justify;">Zacznijmy od zaktualizowania klasy <strong>Game</strong>. W <em>Game.h</em><strong> </strong>dopisujemy now? metod? <span class="lang:c++ decode:true crayon-inline">void single()</span>, nast?pnie w <em>Game.cpp</em> w <em>runGame()</em> pod <em>GameState::Game</em> dopisujemy <em>single()</em> oraz <em>break</em>.</p>
+<p style="text-align: justify;">Oto jak prezentuje si? metoda <strong>single()</strong>:</p>
+
+<pre class="lang:c++ decode:true" title="Metoda single()">void Game::single()
+{
+	Engine engine(window);
+
+	engine.runEngine();
+
+	state = MENU;
+}</pre>
+<pre class="lang:c++ decode:true" title="Metoda runGame()">void Game::runGame()
+{
+	while(state != END)
+	{
+		switch (state)
+		{
+		case GameState::MENU:
+			menu();
+			break;
+		case GameState::GAME:
+			single();
+			break;
+		}
+	}
+}</pre>
+<p style="text-align: justify;">Jak wida? przy tworzeniu przekazujemy okno do konstruktora <strong>Engine</strong>, nast?pnie uruchamiamy sam? gr?. Po wyj?ciu z gry zmienia nam si? status gry na <em>MENU</em>.</p>
+<p style="text-align: justify;">Przejd?my teraz do klasy <strong>Engine</strong>, która obecnie nie jest zbyt rozbudowana.</p>
+
+<pre class="lang:c++ decode:true" title="Game.h">#pragma once
+
+#include "Player.h"
+
+class Engine
+{
+public:
+	Engine(sf::RenderWindow &amp;win);
+	~Engine(void);
+
+	void runEngine(sf::RenderWindow &amp;window);
+
+private:
+	Player player;
+};</pre>
+<p style="text-align: justify;">W konstruktorze jedynie co robimy to ustawiamy wska?nik na okno, destruktor zostawiamy pusty.</p>
+<p style="text-align: justify;">Metoda <em>runEngine()</em> to funkcja która po prostu przechwytuje wci?ni?cia klawiszy.</p>
+
+<pre class="lang:c++ decode:true" title="runEngine()">void Engine::runEngine(sf::RenderWindow &amp;window)
+{
+	bool menu = false;
+
+	sf::Clock zegar;
+
+	while(!menu)
+	{
+		Event event;
+		sf::Vector2f mysz(Mouse::getPosition(window));
+
+		while(window.pollEvent(event))
+		{
+			if(event.type == Event::KeyReleased &amp;&amp; event.key.code == Keyboard::Escape)
+				menu = true;
+
+			if(event.type == Event::KeyPressed &amp;&amp; event.key.code == Keyboard::W)
+			{
+				player.idz(mysz);
+			}
+
+			else if(event.type == Event::KeyReleased)
+			{
+				if(event.key.code == Keyboard::W)
+					player.stop();
+			}
+		}
+
+		if(zegar.getElapsedTime() &gt; sf::seconds(0.1))
+		{
+			player.update();
+			zegar.restart();
+		}
+
+		window.clear();
+		window.draw(player);
+		window.display();
+	}
+}</pre>
+<p style="text-align: justify;">W naszej grze gracz b?dzie szed? w kierunku kursora, ale dopiero po wci?ni?ciu myszy.</p>
+<p style="text-align: justify;">Instrukcja <span class="lang:c++ decode:true crayon-inline ">window.draw(player)</span>  jest legalna, poniewa? klasa <strong>Player</strong> jest dziedziczona po klasie <strong>Drawable</strong> oraz <strong>Transformable </strong>(wi?cej informacji o dziedziczeniu po tych klasach znajdziesz w <em>kursie podstawowym SFML</em> na moim blogu).</p>
+<p style="text-align: justify;">Przejd?my teraz co nas bardziej interesuje i to co jest obecnie najbardziej rozbudowane, czyli klasa <strong>Player</strong>:</p>
+
+<pre class="lang:c++ decode:true" title="Player.h">#pragma once
+
+#include &lt;SFMLGraphics.hpp&gt;
+#include &lt;vector&gt;
+
+class Player: public sf::Drawable,
+	sf::Transformable
+{
+public:
+	Player(void);
+	~Player(void);
+
+	enum Status {
+	IDZ,
+	STOJ
+	};
+
+	sf::Vector2f getPosition();
+	Status getStatus();
+
+	void update();
+
+	void stop();
+	void idz(sf::Vector2f mysz);
+
+protected:
+	int klatka_animacji;
+
+private:
+	sf::Sprite sprite;
+	sf::Texture texture;
+
+	Status status;
+
+	float speed;
+	size_t frame;
+
+	virtual void draw(sf::RenderTarget &amp;target,sf::RenderStates states) const;
+};</pre>
+<p style="text-align: justify;">Gracz posiada <em>status</em>, czyli informacj? o tym, czy np. jest w spoczynku. Reszt? zmiennych wyja?ni? w miar? jak b?dziemy ich u?ywa?.</p>
+
+<pre class="lang:c++ decode:true" title="Konstruktor">Player::Player(void)
+{
+	if(!texture.loadFromFile("data/images/player-move.png"))
+	{
+		MessageBox(NULL,"Textures not found!","ERROR",NULL);
+		return;
+	}
+
+	sprite.setTexture(texture);
+	sprite.setTextureRect(IntRect(0,0,64,64));
+
+	sprite.setOrigin(32,32);
+
+	status = STOJ;
+
+	frame = 0;
+	speed = 1.5;
+}</pre>
+<p style="text-align: justify;">W konstruktorze wczytujemy nasz? tekstur? oraz przypisujemy j? do sprite'a. Kolejnym krokiem jest ustawienie odpowiedniej klatki animacji, w <em>IntRect</em> podajemy argumenty: pierwsze dwa to pozycja x i y na teksturze, od której b?dzie pobierany mniejszy kwadrat (klatka animacji). Kolejne dwa to szeroko?? i wysoko?? klatki.</p>
+<p style="text-align: justify;"><em>setOrigin</em> s?u?y do ustawienia punktu wg którego b?dziemy poruszali nasz? postaci?, obracali itd. Ja ustawi?em j? idealnie na ?rodek.</p>
+<p style="text-align: justify;">Kolejny element to zmiana statusu postaci oraz ustawienie bazowych warto?ci pr?dko?ci i klatki animacji, któr? w?a?nie si? zajmiemy.</p>
+
+<pre class="lang:c++ decode:true" title="update()">void Player::update()
+{
+	if(status == STOJ) return;
+	if(frame &lt; 7 /*liczba klatek animacji*/)
+		frame++;
+	else
+		frame = 0; //zapetlanie animacji
+
+	sprite.setTextureRect(IntRect(frame*64,0,64,64));
+								//x, y, szerokosc, wysokosc
+}</pre>
+<p style="text-align: justify;">Tutaj zajmujemy si? zmian? klatki animacji na odpowiedni?. Chyba, ?e posta? ma sta?, wtedy pomijamy t? funkcj?.</p>
+<p style="text-align: justify;">Metoda odpowiadaj?ca za stanie nie wygl?da specjalnie trudno:</p>
+
+<pre class="lang:c++ decode:true">void Player::stop()
+{
+	status = STOJ;
+	frame = 0;
+}</pre>
+<p style="text-align: justify;">Lecz ta odpowiadaj?ca za chodzenie wymaga nieco wi?cej pracy.</p>
+
+<pre class="lang:c++ decode:true">void Player::idz()
+{
+	status = IDZ;
+
+	float rotacja = sprite.getRotation();
+	float vx = sin(( rotacja * M_PI ) / 180.0f );
+	float vy = -cos(( rotacja * M_PI ) / 180.0f );
+
+	sprite.move (speed*vx,speed*vy);
+}</pre>
+<p style="text-align: justify;">U?ywamy tutaj sinusów i cosinusów, poniewa? chcemy aby posta? porusza?a si? w kierunku, w którym patrzy. Z racji, ?e nasza posta? zwrócona jest twarz? w gór? to odwracamy naszego cosinusa za pomoc? minusa (M_PI na makro zawarte w <strong>math.h</strong>).</p>
+<p style="text-align: justify;">Teraz zmienimy delikatnie <em>update</em><strong>,</strong> poniewa? tam napiszemy kod dzi?ki któremu nasza posta? b?dzie zawsze skierowana w kierunku myszy:</p>
+
+<pre class="lang:c++ decode:true">	Vector2f norm = mysz - sprite.getPosition();
+	float rot = atan2(norm.y,norm.x);
+	rot = rot * 180.f/M_PI;
+
+	rot += 90;
+	sprite.setRotation(rot);</pre>
+<p style="text-align: justify;">Pierwszym krokiem jaki robimy to policzenie wektora pomi?dzy pozycj? myszy i interesuj?cego nas obiektu, czyli ?rodkiem gracza.</p>
+<p style="text-align: justify;">Nast?pnym elementem jest policzenie k?ta za pomoc? funkcji <em>atan2</em>.</p>
+<p style="text-align: justify;">Z racji, ?e ta funkcja zwraca wynik w radianach zamieniamy je na stopnie w kolejnej linii, a poprzez dodanie 90 otrzymujemy poprawny k?t i od teraz obiekt obraca si? poprawnie. Na ko?cu ustawiamy odpowiedni? rotacj?.</p>
+<p style="text-align: justify;">Aby obracanie dzia?a?o poprawnie i bez zacinania przenie?my zegar z animacj? do klasy <em>Player</em>.</p>
+
+<pre class="lang:c++ decode:true ">void Player::update(sf::Vector2f mysz)
+{
+	Vector2f norm = mysz - sprite.getPosition();
+	float rot = atan2(norm.y,norm.x);
+	rot = rot * 180.f/M_PI;
+
+	rot += 90;
+	sprite.setRotation(rot);
+
+	if(anim_clock.getElapsedTime() &gt; sf::seconds(0.09f) )
+	{
+		if(status == STOJ) return;
+		if(frame &lt; 7 /*liczba klatek animacji*/)
+			frame++;
+		else
+			frame = 0; //zapetlanie animacji
+
+		sprite.setTextureRect(IntRect(frame*64,0,64,64));
+								//x, y, szerokosc, wysokosc
+		anim_clock.restart();
+	}
+}</pre>
+<p style="text-align: justify;">Oczywi?cie mo?na nasz? animacj? jeszcze dopracowa?, np poprawiaj?c szybko?? postaci i zmieniaj?c czas trwania klatki na taki, który bardziej by pasowa? do animacji, ale zarówno to jak i np dodanie innych animacji pozostawiam Wam.</p>
+<strong>Kod ?ród?owy z tej lekcji:</strong>
+
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%202.zip">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="https://github.com/sheadovas/Kurs_SFML/tree/master/Lekcja%202">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>

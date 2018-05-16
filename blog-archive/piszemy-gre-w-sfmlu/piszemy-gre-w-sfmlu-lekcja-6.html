@@ -1,0 +1,450 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">Jak bardzo cz?sto si? okazuje, detale w grach s? bardzo wa?ne i to one nie raz, nie dwa decyduj? o tym czy gra jest grywalna (wiem mas?o ma?lane), czy gracz pozostanie przy naszym produkcie na d?u?ej. Nasza gra posiada ju? podstawowe mechaniki, teraz czas je udoskonali?.</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;"><a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%205.zip">Kod z poprzedniej lekcji</a></p>
+<p style="text-align: justify;">Jak ?adnie uj??em to we wst?pie nasza gra posiada ju? podstawowe mechaniki, które sprawiaj? ?e dla nas programistów, gra jest w zasadzie uko?czona, poniewa? dzia?a w pewien sposób kolizja pomi?dzy obiektami, mo?na strzela? pociskami w asteroidy. Jednak grze brakuje wa?nego elementu, który jest m.in. naszym za?o?eniem odno?nie gry: ma by? to survival, a gr? survivalow? nie nazwiemy czego? co generuje jedn? asteroid? ;).</p>
+<p style="text-align: justify;">Musz? przyzna?, ?e cz??ciowo i nie?wiadomie oszuka?em ci? odno?nie tego co pojawi si? w tej lekcji, poniewa? jak si? okazuje, to wg wcze?niej przygotowanego przeze mnie planu (o którym ostatnio zapomnia?em) efekty specjalne pojawi? si? dopiero w nast?pnej lekcji...</p>
+
+
+<hr />
+<p style="text-align: justify;">Zacznijmy od poprawek, je?eli uruchamia?e? kod przygotowany w lekcjach, to pewnie zauwa?y?e?, ?e generowana asteroida nie porusza si?, lecz stoi w miejscu. Jest to spowodowane tym, ?e w metodzie <strong>generate()</strong> po losowaniu pr?dko?ci nada?em jej warto?? 0, dla mojej wygody przy sprawdzaniu kolizji, zdaje si? ?e nie poinformowa?em si? o tym, dlatego te? zamiast warto?ci (0,0) zmieniamy na:</p>
+
+<pre class="lang:c++ decode:true">ast.speed = Vector2f(vx,vy)</pre>
+<p style="text-align: justify;">Z racji, ?e nie lubi? mie? ba?aganu w kodzie, dlatego te? utworzy?em w klasie <strong>Engine</strong> metod? typu <strong>void</strong> o nazwie <strong>collision()</strong> i do niej przenios?em kod z metody <strong>update</strong>, który odpowiada? za sprawdzanie kolizji.</p>
+
+<pre class="lang:c++ decode:true">void Engine::collision()
+{
+	//sprawdzenie asteroid
+	if(!asteroids.isEmpty())
+	{
+		Vector2f A[3] = {player.getPosition(1),player.getPosition(2),player.getPosition(3)};
+
+		int numAsteroid = 0;
+		while(numAsteroid &lt; asteroids.getSize())
+		{
+			Vector2f *B = new Vector2f[asteroids.getSize(numAsteroid)];
+
+			for(int i=0;i&lt;asteroids.getSize(numAsteroid);i++)
+				B[i] = asteroids.getPoint(numAsteroid,i);
+
+			bool collision;
+
+			for(int i=0;i&lt;3;i++)
+			{
+				for(int j=0;j&lt;asteroids.getSize(numAsteroid);j++)
+				{
+					collision=(check_collision(A,3,B,asteroids.getSize(numAsteroid),A[i]-B[j]));
+					if(collision)
+					{
+						break;
+					}
+				}
+				if(collision)
+				{
+					asteroids.del(numAsteroid);
+					break;
+				}
+			}
+
+			delete []B;
+			numAsteroid++;
+		}
+	}
+	//sprawdzenie pocisków
+	if(!bullets_player.isEmpty())
+	{
+		for(int i=0;i&lt;bullets_player.getSize();i++)
+		{
+			for(int j=0;j&lt;asteroids.getSize();j++)
+			{
+				Vector2f *vert = new Vector2f[asteroids.getSize(j)];
+				for(int k=0;k&lt;asteroids.getSize(j);k++)
+				{
+					vert[k] = asteroids.getPoint(j,k);
+				}
+
+				bool czy_w_polygonie = pointInside(bullets_player.getPoint(i),vert,asteroids.getSize(j));
+
+				if(czy_w_polygonie)
+				{
+					asteroids.del(j);
+					bullets_player.remove(i);
+				}
+				delete []vert;
+			}//for
+		}//for
+	}//if
+}</pre>
+<p style="text-align: justify;">Skoro porz?dki mamy za sob?, czas na powa?niejsze zmiany. Nasza gra jest dalej jakby nie patrze? symulatorem statku z niesko?czon? amunicj? przeciwko (uwaga): 1 asteroidzie, któa i tak si? zniszczy je?eli wyleci poza ekran. Dlatego co planujemy zrobi? podczas tej lekcji:</p>
+
+<ul style="text-align: justify;">
+	<li>dodamy generator asteroid (tzn. fabryk? jednostek), która b?dzie generowa?a asteroidy,</li>
+	<li>dodamy ilo?? ?y? gracza,</li>
+	<li>gracz b?dzie móg? (w ko?cu) zgin??,</li>
+	<li>wy?wietlimy na ekranie: ilo?? ?y?, amunicj?, czas jaki przetrwali?my,</li>
+	<li>skoro mamy sko?czon? amunicj? musimy doda? paczki z ammo,</li>
+	<li>je?eli mamy paczki z ammo to dlaczego by nie doda? innych, np z ?yciem i tymczasowymi boostami?</li>
+</ul>
+<p style="text-align: justify;">Nie wiem jak twoim zdaniem, ale wg mnie gra z tego opisu ju? z miejsca prezentuje si? lepiej i wbrew pozorom nie zajmie nam to du?o linii kodu jak si? mo?e wydawa?, a wi?c czas popisa? kod.</p>
+&nbsp;
+<h2><strong>I. Fabryka jednostek</strong></h2>
+
+<hr />
+<p style="text-align: justify;">Przechodzimy do <strong>Asteroids::generate</strong>, gdzie zmienimy lekko kod, zamiast losowania pozycji asteroidy na ca?ej scenie, losujemy j? tylko na kraw?dziach</p>
+
+<pre class="lang:c++ decode:true">if(x==0 &amp;&amp; y==0)
+{
+	if(rand()%10&gt;4)ast.big=true; else ast.big=false;
+
+	if(rand()%2 == 0)
+	{
+		x = -10;
+		y = rand()%720;
+	}
+	else
+	{
+		x = rand()%1280;
+		y = -10;
+	}
+
+}</pre>
+[caption id="attachment_1976" align="aligncenter" width="420"]<a href="http://unknown/wp-content/uploads/2014/06/losowanie-osi-przeciwników.png"><img class="size-thumbnail wp-image-1976" src="http://unknown/wp-content/uploads/2014/06/losowanie-osi-przeciwników-420x236.png" alt="Schemat losowania osi przeciwników" width="420" height="236" /></a> Schemat losowania osi przeciwników[/caption]
+
+Dodatkowo wy??czmy ich usuwanie gdy wyjd? poza kraw?d? i po prostu niech zachowuj? si? jak gracz, dzi?ki temu gra b?dzie ciekawsza bo gracz nie b?dzie móg? si? bawi? w ich unikanie:
+<pre class="lang:c++ decode:true">//wychodzenie poza krawedzie
+for(int i=0;i&lt;m_asteroids.size();i++)
+{
+	Vector2f pos = m_asteroids[i].shape.getPosition();
+
+	//os x
+	if(pos.x &gt; 1295) //margines 15 pikseli
+		m_asteroids[i].shape.setPosition(-10,pos.y);
+	else if(pos.x &lt; -15)
+		m_asteroids[i].shape.setPosition(1290,pos.y);
+
+	if(pos.y &gt; 735)
+		m_asteroids[i].shape.setPosition(pos.x,-15);
+	else if(pos.y &lt; -15)
+		m_asteroids[i].shape.setPosition(pos.x,730);
+}</pre>
+<p style="text-align: justify;">Ten kod powy?ej wklejamy w update zamiast usuwania asteroid, skoro mamy to ju? za sob? zajmijmy si? fabryk? asteroid, która b?dzie dzia?a?a na takiej zasadzie:</p>
+
+<blockquote>- na pocz?tku gry wygeneruj 5 asteroid,
+
+- przy ka?dej nowej fali generuj 2 razy wi?cej asteroid ni? ostatnio</blockquote>
+<p style="text-align: justify;">Do <strong>Engine</strong> dodajemy takie zmienne jak (w nawiasach s? warto?ci jakie nadajemy w konstruktorze):</p>
+
+<blockquote>size_t nr fali(1), liczba_asteroid(0), Clock czas_fali(czas_fali.restart()),czas_gry</blockquote>
+<p style="text-align: justify;">Oprócz tego w <strong>runEngine</strong> tymczasowo nadajemy liczba_asteroid warto?? 5, oraz modyfikujemy kod update w nast?puj?cy sposób:</p>
+
+<pre class="lang:c++ decode:true">void Engine::update()
+{
+	player.update();
+	bullets_player.update();
+
+	asteroids.update();
+	collision();
+
+	//generowanie asteroid
+	if(liczba_asteroid == 0)
+	{
+		nr_fali++;
+
+		liczba_asteroid = nr_fali*2;
+		asteroids.generate(liczba_asteroid);
+
+		czas_gry += czas_fali.getElapsedTime();
+		czas_fali.restart();
+	}
+}</pre>
+<p style="text-align: justify;">A tak?e przy kolizji obiektów dodajemy linijk?: <strong>liczba_asteroid--;</strong> tak aby istnia?a szansa na spe?nienie tego warunku. To tyle je?eli chodzi o pierwsze za?o?enie, przejd?my do kolejnego.</p>
+
+
+<hr />
+<p style="text-align: justify;">Taka ma?a dygresja, w obecnej wersji kodu znajduje si? ma?y b??d z usuwaniem asteroid, który powoduje b??d krytyczny gry informuj?cy o przej?ciu poza zasi?g vectora, w najbli?szym czasie zostanie to poprawione przy lekcji gdzie tego b??du nie zauwa?y?em.</p>
+<p style="text-align: justify;">Problem  le?y przy sprawdzaniu kolizji dla pocisku, po prostu p?tla wci?? si? wykonuje dla danego pocisku gdy ju? zosta? usuni?ty i to generuje problemy, wystarczy doda? jeszcze jednego if'a którego zadaniem jest przerwanie p?tli (metoda collision)</p>
+
+<pre class="lang:c++ decode:true">if(czy_w_polygonie)
+{
+	asteroids.del(j);
+	bullets_player.remove(i);
+	liczba_asteroid--;
+}
+delete []vert;
+if(czy_w_polygonie)
+	break;</pre>
+&nbsp;
+<h2><strong>II. ?ycie i ?mier?</strong></h2>
+
+<hr />
+<p style="text-align: justify;">Nieco dramatyczny nag?ówek, ale i wa?ny w grze, bo co to za frajda z gry gdy nie mo?emy przegra?? Przejd?my do klasy <strong>Player</strong>, gdzie dodamy par? rzeczy. Pami?tasz mo?e enum "Status", wreszcie zrobimy z niego po?ytek. Dodajmy do niego jeszcze <strong>STATUS_IMMORTAL</strong> oznaczaj?cy, ?e gracz jest nie?miertelny, przyda to si? nam do bonusu, który b?dzie dawa? graczowi tymczasow? nie?miertelno??, a tak?e dodajmy zmienn? odpowiadaj?c? za ilo?? ?y? <strong>size_t</strong> lifes. Dodajemy tak?e wska?nik na <strong>Clock</strong> special_effects, ale tym zajmiemy si? pó?niej. Warto?ci pocz?tkowe dla status to <strong>STATUS_ALIVE</strong>, a dla lifes to <strong>3</strong>.</p>
+<p style="text-align: justify;">Brakuje nam jeszcze metody, która by mog?a skrzywdzi? gracza:</p>
+
+<pre class="lang:c++ decode:true">void Player::enemy_coll()
+{
+	if(status == STATUS_ALIVE)
+	{
+		lifes--;
+
+		if(lifes &gt; 0)
+		{
+			duration = seconds(2.5f);
+			special_effect = new Clock;
+
+			status = STATUS_IMMORTAL;
+			shape.setFillColor(Color::Red);
+		}
+		else
+			status = STATUS_DEAD;
+	}
+}</pre>
+<p style="text-align: justify;">Je?eli gracz zostanie trafiony przez asteroide i wci?? ma dodatkowe ?ycia to dostaje na 2.5 sekundy nie?miertelno?? oraz zmieniamy jego kolor na czerwony, w przeciwnym wypadku ko?czy si? gra. Dodajemy tak?e w destruktorze instrukcj?:</p>
+
+<pre class="lang:c++ decode:true">Player::~Player(void)
+{
+	if(special_effect != NULL)
+	{
+		delete special_effect;
+	}
+}</pre>
+<p style="text-align: justify;">Dzi?ki temu b?dziemy mieli pewno??, ?e nie zostawiamy w pami?ci jakich? niepotrzebnych danych, tworzymy metod? <strong>getLifes()</strong>, która po prostu zwraca lifes. Przyda nam si? metoda do wy?wietlania czasu trwania bonusu:</p>
+
+<pre class="lang:c++ decode:true">int Player::getSpecialEffectTime()
+{
+	if(special_effect == NULL)
+		return 0;
+
+	Time t = duration - special_effect-&gt;getElapsedTime();
+	return t.asMilliseconds();
+}</pre>
+<p style="text-align: justify;">Metoda powy?ej zwraca czas w milisekundach, który b?dziemy zamienia? sobie na sekundy. W <strong>Player::update</strong> dopisujemy:</p>
+
+<pre class="lang:c++ decode:true">//specjalny bonus
+if(special_effect-&gt;getElapsedTime() &gt;= duration &amp;&amp; status == STATUS_IMMORTAL)
+{
+	delete special_effect;
+	special_effect = NULL;
+
+	status = STATUS_ALIVE;
+	shape.setFillColor(Color::White);
+}</pre>
+<p style="text-align: justify;">Przechodzimy teraz do klasy Engine, gdzie wykrywamy kolizj? pomi?dzy graczem, a asteroid? i w ifie dopisujemy wywo?anie metody enemy_coll(), if wygl?da nast?puj?co:</p>
+
+<pre class="lang:c++ decode:true">if(collision)
+{
+	asteroids.del(numAsteroid);
+	liczba_asteroid--;
+	player.enemy_coll();
+	break;
+}</pre>
+<p style="text-align: justify;">Dopisujemy jeszcze w runEngine w p?tli while(!menu) if'a, który sprawdza czy status gracza nie zmieni? si? na DEAD, je?eli tak zmienia warto?? menu na true.</p>
+<p style="text-align: justify;">W ten sposób wykonali?my kolejny punkt z za?o?e?, czas na kolejny :)</p>
+&nbsp;
+<h2><strong>III. Wy?wietlamy u?yteczne informacje dla gracza</strong></h2>
+
+<hr />
+<p style="text-align: justify;">Jak w ka?dej grze przyda?oby si? podzieli? z graczem jakimi? informacjami, które mog? mu si? przyda? typu ilo?? amunicji, ?ycia, czy czas, który przetrwa?. W naszym przypadku nie b?dzie problemu z brakiem widoczno?ci wy?wietlanych danych, jednak zazwyczaj scena gry jest ró?nokolorowa i warto wy?wietli? te dane na jakim? pasku, tak aby by?y w pe?ni czytelna. My nie b?dziemy go rysowa? poniewa? nie ma takiej potrzeby, jednak aby by?o ciekawiej informacje o czasie trwania specjalnego efektu b?dziemy wy?wietla? jedynie gdy taki bonus b?dzie aktywny.</p>
+
+
+[caption id="" align="aligncenter" width="401"]<img src="http://img.itch.io/aW1hZ2UvNDQ3NC8xNTI0My5qcGc=/original/IvSRPe.jpg" alt="" width="401" height="401" /> SQUARE - przyk?ad gry z paskiem na którym wy?wietlane s? u?yteczne dla gracza informacje[/caption]
+<p style="text-align: justify;">Najwa?niejsze informacje b?d? wy?wietlone na górze ekranu, czyli: ilo?? ?y?, czas gry, ammo. W prawym dolnym rogu wy?wietlimy czas trwania specjalnego efektu. Pracujemy w klasie <strong>Engine</strong> i tworzymy tam tablic? (dla u?atwienia w komentarzu zapisa?em, co który element oznacza)</p>
+
+<pre class="lang:c++ decode:true">//[0]zycia,[1]czas gry,[2]ammo,[3]czas bonusu
+Text napis[4];
+string str_napis[4];</pre>
+<p style="text-align: justify;">Musimy tak?e utworzy? sobie <span style="text-decoration: underline;">funkcj?</span>, zamieniaj?c? liczby na string (musimy do??czy? bibliotek? sstream):</p>
+
+<pre class="lang:c++ decode:true">string toString(float liczba)
+{
+	stringstream ss;
+	ss&lt;&lt;liczba;
+
+	return ss.str();
+}</pre>
+<p style="text-align: justify;">Przechodzimy do konstruktora, który tak wygl?da po zmianach:</p>
+
+<pre class="lang:c++ decode:true">Engine::Engine(sf::RenderWindow &amp;win,bool b)
+{
+	window = &amp;win;
+	window-&gt;setMouseCursorVisible(false);
+
+	bullets_player = Bullet(false);
+
+	audio.loadMusic(false);
+	audio.loadSounds();
+
+	audio.playMusic();
+	audio.setVolume(!b);
+
+	liczba_asteroid = 0;
+	nr_fali = 1;
+
+	font.loadFromFile("data/Mecha.ttf");
+
+	str_napis[0]="Lifes: ";
+	str_napis[1]="";
+	str_napis[2]="Ammo: ";
+	str_napis[3]="Effect active for: ";
+
+	for(int i=0;i&lt;4;i++)
+	{
+		napis[i].setFont(font);
+		napis[i].setCharacterSize(17);
+		napis[i].setColor(Color(255,255,255,90));
+	}
+
+	napis[0].setString(str_napis[0]+toString(player.getLifes()));
+	napis[0].setPosition(10,10);
+
+	napis[1].setString("0.0sec");
+	napis[1].setPosition(1280/2-napis[1].getGlobalBounds().width/2,10);
+
+	napis[2].setString(str_napis[2]+toString(bullets_player.getAmmo()));
+	napis[2].setPosition(1280-napis[2].getGlobalBounds().width-10,10);
+
+	czas_fali.restart();
+}</pre>
+<p style="text-align: justify;">Linie odno?nie pozycji napisu b?d? aktywowane jedynie gdy b?d? potrzebne, nie b?d? aktualizowane ca?y czas (wyj?tkiem jedynie jest czas gry). Mamy tutaj ustawienie napisów w odpowiednich pozycjach, st?d ró?ne argumenty w ich ustawianiu, pierwszy napis by? ?atwiejszy do zrealizowania, poniewa? nie musieli?my uwzgl?dnia? d?ugo?ci napisu.</p>
+<p style="text-align: justify;">Drugi napis (a raczej pozycja drugiego napisu) powsta? w sposób, który jest ju? nam doskonale znany, dzielmy szeroko?? ekranu przez 2 i odejmujemy od tego po?ow? szeroko?ci drugiego napisu.  W ten sposób zyskujemy pozycj? x na której musimy umie?ci? nasz napis aby by? idealnie na ?rodku ekranu.</p>
+<p style="text-align: justify;">Pozycja trzeciego napisa?a powsta?a przez odj?cie od szeroko?ci ekranu szeroko?ci napisu oraz dodatkowo od 10, poniewa? chcemy mie? 10-pikselowy margines.</p>
+<p style="text-align: justify;">W zasadzie nie musieliby?my sie tak bawi?, je?eli ustawiliby?my sobie na pocz?tku punkt wg któóego poruszamy ca?? figur? jako ?rodek figury ;)</p>
+
+
+<hr />
+
+Poustawiajmy sobie zmian? tekstu, dla poszczególnych napisów:
+
+<strong>napis[0]</strong> ulegnie zmianie gdy gracz straci ?ycie, wi?c wystarczy, ?e w metodzie <strong>collision()</strong> przy wykryciu kolizji zapiszemy linijk? kodu:
+<pre class="lang:c++ decode:true">napis[0].setString(str_napis[0]+toString(player.getLifes()));</pre>
+<p style="text-align: justify;">Z napis[1] jest nieco wi?cej zabawy i go musimy niestety aktualizowa? bez przerwy, bo on wy?wietla czas gry, a wi?c idziemy do <strong>update()</strong>.</p>
+<p style="text-align: justify;">Tutaj mam dla was kolejn? cenn? uwag? odno?nie SFML'a, która pokazuje, ?e cz?owiek uczy si? na b??dach. Chcia?em utworzy? zmienn? do czcionki tylko tymczasowo, co okaza?o si? g?upie z mojej strony bo sprawi?o, ?e musia?em m?czy? si? z b??dem "Access violation reading location". Dlatego te?, je?eli b?dzie wam wyskakiwa? taki b??d w debuggerze i wskazywa? na metody ustawiania stringa dla sf::Text, a inne pozostawi w spokoju (no i jeszcze gdy b?dziecie chcieli wy?wietli? tekst), to b?dzie znaczy?o, ?e gdzie? obiekt Font wam si? usun?? z pami?ci :)</p>
+
+<pre class="lang:c++ decode:true">void Engine::update()
+{
+	player.update();
+	bullets_player.update();
+
+	asteroids.update();
+	collision();
+
+	//generowanie asteroid
+	if(asteroids.getSize() &lt;= 0)
+	{
+		nr_fali++;
+
+		liczba_asteroid = nr_fali*2;
+		asteroids.generate(liczba_asteroid);
+
+		czas_fali.restart();
+	}
+
+	float czas = czas_gry.getElapsedTime().asSeconds();
+	napis[1].setString(toString(czas)+"s");
+	napis[1].setPosition(1280/2-napis[1].getGlobalBounds().width/2,10);
+}</pre>
+<p style="text-align: justify;">W <strong>update</strong> zmieni?o si? nieco, przede wszystkim zmienili?my typ obiektu czas_gry na <strong>Clock</strong>, a to dlatego, ?e chcemy wy?wietla? na bie??co czas ca?ej gry. Oczywi?cie przy ka?dej aktualizacji wy?rodkowujemy napis.</p>
+<p style="text-align: justify;">Nast?pn? rzecz? jak? chcemy wy?wietli? jest ilo?? amunicji, dlatego te? umiejscowimy kod do aktualizowania napisu w collision, w sprawdzaniu pocisków:</p>
+
+<pre class="lang:c++ decode:true">//sprawdzenie pocisków
+if(!bullets_player.isEmpty())
+{
+	napis[2].setString(str_napis[2]+toString(bullets_player.getAmmo()));
+	napis[2].setPosition(1280-napis[2].getGlobalBounds().width-10,10);</pre>
+<p style="text-align: justify;">Zosta?o nam jeszcze dodanie ostatniego napisu, który b?dzie si? zmienia? w <strong>update</strong> i b?dzie dzia?a? w nast?puj?cy sposób, je?eli czas do ko?ca bonusu wynosi 0 to zacznie znika?, je?eli czas do ko?ca bonusu jest wi?kszy od zera to b?dzie si? on pojawia?:</p>
+
+<pre class="lang:c++ decode:true">	//aktualizowanie czasu bonusu
+	if(player.getSpecialEffectTime()==0)
+	{
+		Color color = napis[3].getColor();
+		if(color.a &gt; 0)
+		{
+			color.a-=5;
+			napis[3].setColor(Color(255,255,255,color.a));
+		}
+	}
+	else
+	{
+		Color color = napis[3].getColor();
+		if(color.a &lt; 255)
+		{
+			color.a+=5;
+			napis[3].setColor(Color(255,255,255,color.a));
+		}
+	}
+	napis[3].setString(str_napis[3]+toString(player.getSpecialEffectTime())+"s");
+	napis[3].setPosition(1280-10-napis[3].getGlobalBounds().width,700);</pre>
+<p style="text-align: justify;">Kod jest w miar? prosty je?eli rozumiemy jak dzia?a system kolorów RGBA i tutaj wykorzystujemy ostatni? liter? A (alpha), ale o tym za chwil?. Na pocz?tku sprawdzamy czy mamy przyciemni? tekst (czy ma znikn??), nast?pnie pobieramy kolor tekstu gdzie interesuje nas jedynie warto?? a (alpha), czyli przezroczysto?? tekstu, który zmniejszamy o 5 dopóki jego warto?? nie b?dzie równa 0. Im warto?? alpha bli?sza zeru tym obiekt jest bardziej przezroczysty, warto?? 255 oznacza ?e obiekt nie jest wcale przezroczysty.</p>
+<p style="text-align: justify;">Rozja?nianie dzia?a w sposób analogiczny, tylko ?e w nim dodajemy warto?? o 5. Pod if'em mamy standardowe ustawienie stringa oraz prawid?owe umieszczenie go na scenie.</p>
+<p style="text-align: justify;">Pozosta?o nam jeszcze narysowanie tych obiektów, co robimy oczywi?cie w <strong>draw()</strong>:</p>
+
+<pre class="lang:c++ decode:true">void Engine::draw()
+{
+	window-&gt;clear();	
+
+	for(int i=0;i&lt;4;i++)
+		window-&gt;draw(napis[3]);
+
+	window-&gt;draw(player);
+	window-&gt;draw(bullets_player);
+	window-&gt;draw(asteroids);
+
+	window-&gt;display();
+}</pre>
+&nbsp;
+<h2><strong>IV. Rozdajemy amunicj?, ?ycie i nie?miertelno??</strong></h2>
+
+<hr />
+<p style="text-align: justify;">Przemy?la?em kwesti? paczek i postanowi?em lekko zmieni? koncepcj?, mianowicie wpad?em na 2 pomys?y: amunicja itd b?dzie przydzielana po zniszczeniu asteroidy w sposób losowy lub b?dzie dzia?o si? to dopiero po sko?czeniu fali i zostaniemy przy tym drugim pomy?le.</p>
+<p style="text-align: justify;">Tworzymy  w <strong>Player</strong> now? metody:</p>
+
+<pre class="lang:c++ decode:true">void Player::immortal()
+{
+	status = STATUS_IMMORTAL;
+	shape.setFillColor(Color::Green);
+
+	if(special_effect == NULL)
+		special_effect = new Clock;
+
+	duration = seconds(3.5f);
+	special_effect-&gt;restart();
+}
+void Player::addLifes()
+{
+	if(lifes &lt; 5)
+		lifes++;
+}</pre>
+<p style="text-align: justify;">I znowu przechodzimy do Engine, a konkretnie do <strong>update()</strong>, gdzie jest if odno?nie nowej fali.</p>
+
+<pre class="lang:c++ decode:true">	//generowanie asteroid/nowa fala
+	if(asteroids.getSize() &lt;= 0)
+	{
+		nr_fali++;
+
+		liczba_asteroid = nr_fali*2;
+		asteroids.generate(liczba_asteroid);
+
+		czas_fali.restart();
+
+		//rozdajemy bonusy!
+		if(rand()%30&gt;20)player.addLifes();
+		if(rand()%30&gt;15)bullets_player.addAmmunition();
+		if(rand()%30&gt;25)player.immortal();
+
+	}</pre>
+
+<hr />
+<p style="text-align: justify;">To tyle na dzisiaj, w kolejnej lekcji zajmiemy si? popraw? wygl?du menu, a tak?e powi?kszymy pociski i je nieco poprawimy. Bonusowy filmik  z gry:</p>
+
+<center><iframe width="560" height="315" src="//www.youtube.com/embed/sDgseLVja_k" frameborder="0" allowfullscreen="allowfullscreen"></iframe></center>&nbsp;
+<p style="text-align: justify;"><strong>Kod ?ród?owy:</strong>
+<a href="http://adf.ly/1QDfVj">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="http://adf.ly/1QDfYG">&gt;&gt;GitHub&lt;&lt;</a></p>
+        </body>
+    </html>

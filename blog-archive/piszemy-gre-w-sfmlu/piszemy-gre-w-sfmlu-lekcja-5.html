@@ -1,0 +1,369 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">W tej lekcji zajmiemy si? dosy? wa?nym elementem ka?dej gry, czyli dodaniem muzyki i d?wi?ków.</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;"><a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%204.zip">Kod z poprzedniej lekcji</a></p>
+
+
+<hr />
+<p style="text-align: justify;">Tak jak wspomnia?em na pocz?tku, muzyka jest wa?nym i nieod??cznym fragmentem gier, to ona decyduje o sposobie w jaki odbiera u?ytkownik to co chcemy mu przekaza?. Muzyka potrafi zdecydowa? czy gracz b?dzie podchodzi? do naszej gry powa?nie (b?dzie si? wczuwa?) czy te? b?dzie traktowa? gr? mniej powa?nie, jest to dok?adnie tak jak w filmach je?eli ogl?damy powa?n? scen?, lecz muzyka b?dzie np weso?a to widz nie b?dzie traktowa? tej sceny powa?nie, ale je?li b?dzie odpowiednio dobrana do tej sceny muzyka to wtedy widz bardziej si? skupi. Podsumowuj?c mój wywód muzyka buduje klimat gry i warto o tym pami?ta? przy dobieraniu muzyki</p>
+
+
+<hr />
+<p style="text-align: justify;">Muzyka i d?wi?ki wype?niaj? pustk? w grze nadaj?c jej nieraz tempo, przy wyborze muzyki trzeba nie tylko kierowa? si? w?asnymi preferencjami, ale tak?e charakterem gry. Przy szukaniu soundtracku do gry trzeba tak?e zwraca? uwag? na licencj? na jakiej jest udost?pniana, w przypadku darmowych gier nie ma wielkiego problemu zwykle wystarczy doda? gdzie? link do strony autora muzyki. Osobi?cie polecam mimo wszystko napisa? do autora o zgod? u?ycia danej muzyki w projekcie.</p>
+<p style="text-align: justify;">Jednak sk?d bra? muzyk? do gier? Polecam serwisy</p>
+
+<ul style="text-align: justify;">
+	<li><a href="http://www.indiegamemusic.com/" target="_blank">http://www.indiegamemusic.com/</a> - serwis z muzyk? g?ównie do gier indie, zawiera zarówno darmow? muzyk? jak i p?atn?, posiada tak?e przyjemn? wyszukiwark?</li>
+	<li><a href="http://freemusicarchive.com/" target="_blank">http://freemusicarchive.com/</a> - ten serwis akurat nie jest skierowany dla twórców gier, ale mo?na tutaj znale?? dobr? muzyk? za darmo</li>
+	<li><a href="http://www.newgrounds.com/audio/" target="_blank">http://www.newgrounds.com/audio/</a> - darmowa muzyka</li>
+	<li><a href="http://www.flashkit.com/soundfx/" target="_blank">http://www.flashkit.com/soundfx/</a> - darmowe d?wi?ki do gier</li>
+</ul>
+<p style="text-align: justify;">Osobi?cie korzystam g?ównie z pierwszego i ostatniego linku.</p>
+<p style="text-align: justify;">Jak pewnie zauwa?ysz wi?kszo?? utworów zajmuje wi?cej ni? nasza gra co mo?e by? problemem je?li chcemy aby nasza gra by?a jak najl?ejsza. Je?eli chcemy aby nasza gra (w znaczeniu wszystkie pliki gry) zajmowa?a jak najmniej miejsca to powinni?my poszuka? muzyki która jest "p?tl?" loop, czyli mimo ?e dany utwór jest krótki to nie nudzi si? szybko i ma?o zajmuje, przyk?adem mo?e by? <a href="http://www.newgrounds.com/audio/listen/561584" target="_blank">ten utwór</a>.</p>
+
+
+<hr />
+<p style="text-align: justify;">Na samym pocz?tku wybierzemy jaki? soundtrack, najlepiej p?tl?, aby nie zajmowa?a zbyt du?o miejsca. Muzyka musi pasowa? do klimatu, czyli w jaki? sposób musi kojarzy? si? nam z kosmosem, wybra?em par? utworów, nic nie stoi na przeszkodzie aby? wybra? w tej lekcji jakie? inne, ale zanim je "zobaczysz" to zastanówmy si? jak ma to wygl?da?. Chcemy aby mo?na by?o d?wi?ki i muzyk? w??cza? lub wy??cza?, muzyka b?dzie inna dla menu i samej gry.</p>
+<p style="text-align: justify;">Tworzymy klas? <strong>Audio</strong>, b?dzie ona obs?ugiwa?a zarówno d?wi?ki, jak i soundtrack. Je?eli przegl?da?e? kod ze SQUARE to ten kod b?dzie analogiczny do tamtego z ma?? ró?nic? ale o tym za chwil?.</p>
+<p style="text-align: justify;">Oto jak wygl?daj? odpowiednio pliki <strong>Audio.h</strong> i <strong>Audio.cpp</strong>:</p>
+
+<pre class="lang:c++ decode:true">//Audio.h
+#pragma once
+
+#include &lt;SFMLAudio.hpp&gt;
+
+using namespace sf;
+
+class Audio
+{
+public:
+	Audio(bool load_everything=false,bool menu=false);
+	~Audio(void);
+
+	enum SoundType{T_STRZAL,T_MENU,T_CLICK,T_COUNT};
+
+	bool loadMusic(bool menu);
+	bool loadSounds();
+
+	void playMusic();
+	void stopMusic();
+
+	void playSound(SoundType sound);
+
+private:
+	Music music;
+
+	Sound sound;
+	SoundBuffer buffer[T_COUNT];
+};
+
+//-----------------------------------------------------------------------------
+
+//Audio.cpp
+#include "Audio.h"
+
+Audio::Audio(bool load,bool menu)
+{
+}
+
+Audio::~Audio(void)
+{
+}
+
+bool Audio::loadMusic(bool menu)
+{
+
+}
+
+bool Audio::loadSounds()
+{
+
+}
+
+void Audio::playMusic()
+{
+
+}
+
+void Audio::stopMusic()
+{
+
+}
+
+void Audio::playSound(SoundType type)
+{
+
+}</pre>
+<p style="text-align: justify;">Skupmy si? na zawarto?ci pliku nag?ówkowego i przeanalizujmy co mamy. Pierwsz? ciekaw? rzecz? jest konstruktor, który ma argument <strong>load_everything</strong>, jak ?atwo mo?na si? domy?li? oznacza on ?adowanie zarówno muzyki, jak i soundtracku. Argument <strong>menu</strong> jest konsekwencj? tego, ?e chcemy aby by? inny soundtrack w menu i grze, dlatego nie ma sensu ?adowa? ca?ej muzyki, skoro skorzystamy na pewno tylko z jednej. Kod wygl?da nast?puj?co:</p>
+
+<pre class="lang:c++ decode:true">Audio::Audio(bool load,bool menu)
+{
+	if(load)
+	{
+		loadMusic(menu);
+		loadSounds();
+	}
+}
+
+Audio::~Audio(void)
+{
+}</pre>
+<p style="text-align: justify;">Nast?pnie mamy metod? <strong>loadMusic</strong>, która ma za zadanie wczytanie muzyki do naszej gry, zale?nie od tego czy jeste?my w menu czy nie. Nale?y pami?ta? o respektowaniu licencji pod jak? mamy nasz utwór, my skorzystamy z muzyki freeware, czyli takiej jaka jest za darmo, ale nasza gra musi by? za darmo, nie mo?emy czerpa? z tego korzy?ci (pieni?dzy) i nale?y umie?ci? gdzie? link do strony autora, czyli jaki? credits. Zale?nie od licencji nie mo?na te? czasami w jakikolwiek sposób zmienia? danego utworu np go konwertowa? na inny format, my skorzystamy z <a href="http://www.indiegamemusic.com/viewtrack.php?id=1120" target="_blank">SpaceExploration by Richard Wurth</a> (w menu) oraz <a href="http://www.newgrounds.com/audio/listen/473502" target="_blank">Boss Battle by skater007</a> lub <a href="http://www.newgrounds.com/audio/listen/573781" target="_blank">8 Bit Fighter by PhatBoiJ</a> lub <a href="http://www.newgrounds.com/audio/listen/554189" target="_blank">Techno Space by HelpThePoor</a>. Specjalnie da?em tutaj ich tyle do wyboru, aby?my mogli zauwa?y? jak mocno zale?ny jest charakter grania od muzyki. Nale?y pami?ta?, ?e SFML nie wspiera formatu ".mp3", dlatego nale?y przekonwertowa? muzyk? np na ".ogg".</p>
+
+<pre class="lang:c++ decode:true">bool Audio::loadMusic(bool menu)
+{
+	string path;
+	if(menu)
+		path="data/soundtrack/SpaceExploration.ogg";
+	else
+		path="data/soundtrack/techno_space.ogg";
+
+	music.openFromFile(path);
+	music.setLoop(true);
+}</pre>
+<p style="text-align: justify;">Teraz odpowiemy sobie na pytanie czym jest nasz <strong>enum SoundType</strong>, jest to po prostu rodzaj d?wi?ku, który ma by? odegrany w danym momencie, ale wi?cej o tym ju? za moment. Obiekt <strong>buffer</strong> ma za zadanie przetrzymywanie w pami?ci danego d?wi?ku,  a <strong>sound</strong> mo?e odtworzy? odpowiedni d?wi?k (korzystamy z <a href="https://www.freesound.org/people/broumbroum/sounds/50561/" target="_blank">MenuSelect</a>, <a href="https://www.freesound.org/people/DrMinky/sounds/166186/" target="_blank">MenuMouseOver</a>, <a href="http://www.flashkit.com/soundfx/Electronic/Beeps/Electron-wwwbeat-8521/index.php" target="_blank">ElectronicBeep</a>)</p>
+
+<pre class="lang:c++ decode:true">bool Audio::loadSounds()
+{
+	string name[T_COUNT]={"strzal.wav","menu.wav","click.wav"};
+	for(int i=0;i&lt;T_COUNT;i++)
+	{
+		if(!buffer[i].loadFromFile("data/soundtrack/"+name[i]))
+			return false;;
+	}
+	return true;
+}</pre>
+<p style="text-align: justify;">Kolejne metody, to po prostu u?ycie ich normalne u?ycie:</p>
+
+<pre class="lang:c++ decode:true">void Audio::playMusic()
+{
+	music.play();
+}
+
+void Audio::stopMusic()
+{
+	music.stop();
+}</pre>
+<p style="text-align: justify;">Za to teraz dopiero mo?emy zobaczy? do czego nam s?u?y SoundType, jest to po prostu wygodniejsza forma odtworzenia d?wi?ku, po prostu w momencie gdy chcemy u?y? d?wi?ku wpisujemy funkcj? playSound oraz jako argument rodzaj po??danego przez nas d?wi?ku:</p>
+
+<pre class="lang:c++ decode:true">void Audio::playSound(SoundType type)
+{
+	sound.setBuffer(buffer[type]);
+	sound.play();
+}</pre>
+<p style="text-align: justify;">Utworzymy jeszcze metod?, która b?dzie mog?a wyciszy? nasz? gr?:</p>
+
+<pre class="lang:c++ decode:true">void Audio::setVolume(bool mute)
+{
+	if(mute)
+	{
+		music.stop();
+		sound.setVolume(0);
+	}
+	else
+	{
+		music.play();
+		sound.setVolume(100);
+	}
+}</pre>
+<p style="text-align: justify;">Teraz mo?emy zaj?? si? w??czeniem tego kodu do gry. W klasie <strong>Engine</strong> wpisujemy <strong>#include "Audio.h"</strong> i na chwil? przechodzimy do <strong>Game</strong>, gdzie tworzymy w pliku nag?ówkowym obiekt <strong>Audio audio</strong> i dopisujemy odpowiednio linijki w metodach:</p>
+
+<pre class="lang:c++ decode:true">//w konstruktorze (na ko?cu)
+audio.loadMusic(true);
+audio.loadSounds();
+audio.playMusic();
+
+//w destruktorze
+audio.stopMusic();
+
+//w menu(), if'y obs?uguj?ce klikni?cia:
+audio.stopMusic();
+audio.playSound(Audio::T_CLICK);
+
+//w menu(), p?tla for wygl?da nast?puj?co:
+for(int i=0;i&lt;ile;i++)
+	if(tekst[i].getGlobalBounds().contains(mouse))
+	{
+		if(tekst[i].getColor()==Color::White)
+		{
+			audio.playSound(Audio::T_MENU);
+		}
+		tekst[i].setColor(Color::Cyan);
+	}
+	else tekst[i].setColor(Color::White);</pre>
+<p style="text-align: justify;">To tyle, je?eli chodzi o klas? <strong>Game</strong>, przechodzimy do <strong>Engine</strong>, konstruktor i destruktor wygl?da niemal identycznie, jedynie z t? ró?nic?, ?e w argumencie dla <strong>loadMusic</strong> podajemy <strong>false</strong>, reszte dopisujemy w odpowiednich miejscach:</p>
+
+<pre class="lang:c++ decode:true">//runEngine, if dla klawisza Escape
+audio.stopMusic();
+audio.playSound(Audio::T_CLICK);
+
+//runEngine if, dla klawisza Control
+audio.playSound(Audio::T_STRZAL);</pre>
+<p style="text-align: justify;">Nie ma jeszcze d?wi?ku dla trafienia w asteroid?, ale to jest taka ?atwa prac domowa dla ciebie ;) Nie ma jeszcze wa?nej rzeczy zwi?zanej z d?wi?kami: nie mo?na ich wy??czy? (je?eli chcesz wiedzie? jak mo?na zrobi? bardziej zaawansowane sterowanie d?wi?kiem polecam<a href="https://github.com/sheadovas/SQUARE/blob/master/Options.cpp" target="_blank"> kod SQUARE</a>).</p>
+<p style="text-align: justify;">My pos?u?ymy si? systemem gier bez kategorii opcje i zrobimy mo?liwo?? w??czania/wy??czania d?wi?ków z poziomu g?ównego menu poprzez klikni?cie w odpowiedni napis. Rozwi?zanie tego ma swoje plusy, poniewa? mo?e si? zdarzy?, ?e nie chcemy aby gracz zmienia? poziomu g?o?no?ci d?wi?ków bo to mog?oby mu zepsu? rozgrywk? (np. w grze gdzie d?wi?ki mog? by? wskazówk?, a odpowiednio podg?o?nione sprawia?yby ?e gra jest za ?atwa).</p>
+<p style="text-align: justify;">Pracujemy na klasie <strong>Game</strong>, <strong>w menu()</strong> zmieniamy odpowiednio:</p>
+
+<pre class="lang:c++ decode:true">void Game::menu()
+{
+	Text title("Mechanized Techno Explorer",font,80);
+	title.setStyle(Text::Bold);
+
+	title.setPosition(1280/2-title.getGlobalBounds().width/2,20);
+
+	const int ile = 2;
+
+	Text tekst[ile];
+
+	string str[] = {"Play","Exit"};
+
+	for(int i=0;i&lt;ile;i++)
+	{
+		tekst[i].setFont(font);
+		tekst[i].setCharacterSize(65);
+
+		tekst[i].setString(str[i]);
+		tekst[i].setPosition(1280/2-tekst[i].getGlobalBounds().width/2,250+i*120);
+	}
+
+	bool b;
+	//opcje
+	fstream file("config.cfg");
+	if(file.is_open())
+		file &gt;&gt; b;
+	else
+		b=true;
+	file.close();
+
+	Text options;
+	string s="Music &amp; Sounds: ";
+	if(b==true)
+			options.setString(s+"ON");
+	else
+		options.setString(s+"OFF");
+
+	options.setFont(font);
+	options.setCharacterSize(20);
+	options.setPosition(10,10);
+	audio.setVolume(!b);
+
+	while(state == MENU)
+	{
+		Vector2f mouse(Mouse::getPosition(window));
+		Event event;
+
+		while(window.pollEvent(event))
+		{
+			//Wci?ni?cie ESC lub przycisk X
+			if(event.type == Event::Closed || event.type == Event::KeyPressed &amp;&amp;
+				event.key.code == Keyboard::Escape)
+				state = END;
+
+			//klikni?cie MENU
+			else if(tekst[0].getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				audio.stopMusic();
+				audio.playSound(Audio::T_CLICK);
+				state = GAME;
+			}
+
+			//klikni?cie EXIT
+			else if(tekst[1].getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				state = END;
+				audio.playSound(Audio::T_CLICK);
+			}
+
+			//wyciszenie/wlaczenie muzyki
+			else if(options.getGlobalBounds().contains(mouse) &amp;&amp;
+				event.type == Event::MouseButtonReleased &amp;&amp; event.key.code == Mouse::Left)
+			{
+				if(b)
+				{
+					b=false;
+					options.setString(s+"OFF");
+				}
+				else
+				{
+					b=true;
+					options.setString(s+"ON");
+				}
+				audio.setVolume(!b);
+				audio.playSound(Audio::T_CLICK);
+			}
+		}
+		for(int i=0;i&lt;ile;i++)
+			if(tekst[i].getGlobalBounds().contains(mouse))
+			{
+				if(tekst[i].getColor()==Color::White)
+				{
+					audio.playSound(Audio::T_MENU);
+				}
+				tekst[i].setColor(Color::Cyan);
+			}
+			else tekst[i].setColor(Color::White);
+
+		if(options.getGlobalBounds().contains(mouse))
+		{
+			options.setColor(Color::Cyan);
+		}
+		else
+			options.setColor(Color::White);
+
+		window.clear();
+
+		window.draw(title);
+		for(int i=0;i&lt;ile;i++)
+			window.draw(tekst[i]);
+
+		window.draw(options);
+
+		window.display();
+	}
+	unmute = b;
+}</pre>
+<p style="text-align: justify;">Wczytujemy tutaj z pliku ustawienie czy d?wi?k ma by? wyciszony, nast?pnie sprawdzamy klikni?cia analogicznie do sprawdzenia czy wci?ni?to opcj? w menu, nic nowego tutaj si? nie pojawia.</p>
+<p style="text-align: justify;">W destruktorze dopisujemy linie, które zapisuj? nasze ustawienie do pliku:</p>
+
+<pre class="lang:c++ decode:true">Game::~Game(void)
+{
+	audio.stopMusic();
+
+	fstream file("config.cfg",ios::out | ios::trunc);
+	file &lt;&lt; unmute;
+	file.close();
+}</pre>
+<p style="text-align: justify;">W konstruktorze <strong>Engine</strong> doszed? nam argument typu <strong>bool</strong>, oto jak wygl?da po zmianach</p>
+
+<pre class="lang:c++ decode:true ">Engine::Engine(sf::RenderWindow &amp;win,bool b)
+{
+	window = &amp;win;
+	window-&gt;setMouseCursorVisible(false);
+
+	bullets_player = Bullet(false);
+
+	audio.loadMusic(false);
+	audio.loadSounds();
+
+	audio.playMusic();
+	audio.setVolume(!b);
+}</pre>
+<p style="text-align: justify;">Jak wida? rzeczy przedstawione tutaj, nie wiele si? ró?ni? od rzeczy przedstawionych w przyk?adach na SFML, dlatego nie ma tutaj zbyt wiele wyja?nie?. Nast?pna lekcja powinna by? dla ciebie ciekawsza, poniewa? w nast?pnej lekcji dowiemy si? jak urozmaici? nasz? gr? o specjalne efekty typu: przej?cia, loading screeny, a tak?e sprawimy ?e nasza gra nabierze nieco wi?cej sensu (obecnie mamy symulator strzelania do jednej asteroidy).</p>
+<p style="text-align: justify;">W razie pyta?, problemów, ewentualnych b??dów w kodzie zapraszam do komentowania. Zapraszam tak?e do subskrypcji bloga przez email (ewentualnie na twitterze).</p>
+<strong>Kod ?ród?owy</strong>
+<a href="http://adf.ly/1QDfGT">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="http://adf.ly/1QDfKp">&gt;&gt;GitHub&lt;&lt;</a>
+
+<strong>Dodatkowe materia?y (muzyka, d?wi?ki)</strong>
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%205%20data.zip">&gt;&gt;Pobierz&lt;&lt;</a>
+<p style="text-align: right;"><a href="http://unknown/piszemy-gre-w-sfmlu-lekcja-6/">Nast?pna lekcja -&gt;</a></p>
+        </body>
+    </html>

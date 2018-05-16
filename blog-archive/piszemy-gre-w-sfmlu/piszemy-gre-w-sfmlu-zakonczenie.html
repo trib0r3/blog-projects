@@ -1,0 +1,108 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <!--more-->
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;">Witam Was w zako?czeniu tego tutoriala. Pocz?tkowo ta lekcja mia?a by? o sterowaniu padem w grze, jednak na stronie SFML'a jest to bardzo dobrze wyja?nione i odsy?am Was do tamtego tutoriala: <a href="http://sfml-dev.org/tutorials/2.0/window-inputs.php#joystick" target="_blank">&gt;&gt;LINK&lt;&lt;</a>, wg za?o?e? tego projektu nasza gra mia?a posiada? system achieventów z gamejolt i opowiem o tym co nieco, a tak?e na samym ko?cu opowiem o moich planach je?eli chodzi o SFML.</p>
+
+
+<hr />
+
+<h2><strong>Achievmenty (przy u?yciu GameJolt)</strong></h2>
+<p style="text-align: justify;">Achievmenty, czy te? osi?gni?cia potrafi? nieco wyd?u?y? czas jaki po?wi?ca si? w grze, maj? tak?e wp?yw na to tabele wyników dzi?ki czemu gracze mog? rywalizowa? ze sob? i z tego powodu warto zaimplementowa? jaki? system osi?gni?? do naszej gry. GameJolt oferuje nam <a href="https://github.com/hworld/gj-cpp-api" target="_blank">gotow? bibliotek?</a>, któr? w ?atwy sposób mo?na zaimplementowa? do naszej gry jednak system ma kilka wad, w przypadku c++ dzia?a jedynie na windows oraz jest strasznie obci??aj?ce, dlatego aby nie zauwa?y? utraty p?ynno?ci podczas grania nale?y u?y? innego w?tku lub systemu, który zastosowa?em w <a href="http://gamejolt.com/games/arcade/square/20503/" target="_blank">SQUARE</a>, je?eli wejdziesz w link to zauwa?ysz efekt dzia?anie tej biblioteki, czyli tablic? wyników oraz achievmenty. Sposób u?ycia tej biblioteki jest w pliku Main.cpp, ale ja go tutaj przedstawi? wyja?niaj?c par? rzeczy:</p>
+
+<pre class="lang:c++ decode:true ">#include "StdAfx.h"
+#include "GameJoltAPI.h"
+
+int main( void )
+{
+
+	//argumenty to id naszej aplikacji w systemie gamejolt oraz specjalny klucz
+	//ktory widzimy tylko my i nie powinni?my go udost?pnia? bo daje dost?p
+	//do zarz?dzania achievmentami itd naszej aplikacji
+	GameJoltAPI api( 937, _T("9a8a5265bdf0803ebbd25a9ccb9459a1") );
+
+	api.SetUsername( _T("") ); //login gracza
+	api.SetUserToken( _T("") );//"haslo" gracza
+
+	if ( api.AuthUser() ) //je?eli zalogowano
+	{
+
+		Trophy trophy = api.GetTrophy( 38 );//trophy czyli trofeum - achievment
+
+		wcout &lt;&lt; trophy.GetTitle() &lt;&lt; endl;//mozemy pobrac jego nazwe, opis i wy?wietli? npw ten sam sposb jak na steam gdy jakis zdobywamy
+
+		wcout &lt;&lt; _T("Achieved: ");
+
+		if ( trophy.IsAchieved() )//sprawdzamy czy wczesniej byl osiagniety
+			wcout &lt;&lt; _T("Yes!") &lt;&lt; endl;
+		else
+			wcout &lt;&lt; _T("No!") &lt;&lt; endl;
+
+		wcout &lt;&lt; _T("Achieved On: ") + trophy.GetAchievedDate() &lt;&lt; endl;//data
+		wcout &lt;&lt; endl;
+
+		//w gamejolt mozna przechowywac pliki, np ekwipunek jaka  posiada jakas postac
+		DataStoreItem gameItem = api.GetDataStoreItem( DataStoreItem::GAME, _T("test") );
+		DataStoreItem testItem = api.GetDataStoreItem( DataStoreItem::GAME, _T("test2") );
+		DataStoreItem userItem = api.GetDataStoreItem( DataStoreItem::USER, _T("test") );
+
+		wcout &lt;&lt; _T("Game Data: ") + gameItem.GetData() &lt;&lt; endl;
+		wcout &lt;&lt; _T("User Data: ") + userItem.GetData() &lt;&lt; endl;
+
+		api.SetDataStoreItem( userItem, _T("TestTest") );
+		api.SetDataStoreItem( testItem, _T("Yarharhar") );
+
+		wcout &lt;&lt; _T("User Data: ") + userItem.GetData() &lt;&lt; endl;
+
+		api.RemoveDataStoreItem( userItem );
+
+		vector&lt;CStdString&gt; keys = api.GetDataStoreKeys( DataStoreItem::GAME );
+
+		//dodawanie punktow do tabeli wynikow, dodajemy opis oraz wartosc
+		api.AddScore( _T("Died 300 times"), 300 );
+		api.AddScore( _T("Died 200 times"), 200, -1, _T("thisisextra"), _T("PoopyFace") );
+
+		api.AddScore( _T("Died 300 times"), 300, 8571 );
+		api.AddScore( _T("Died 200 times"), 200, 8571, _T("thisisextra"), _T("PoopyFace") );
+
+		wcout &lt;&lt; _T("-- Primary Table Scores --") &lt;&lt; endl;
+		vector&lt;Score&gt; scores = api.GetScores();
+		vector&lt;Score&gt;::iterator it;
+
+		//mozna ja takze wyswietlic w naszej grze
+		for ( it = scores.begin(); it != scores.end(); it++ )
+		{
+			wcout &lt;&lt; _T("Score: ") + it-&gt;GetScore() &lt;&lt; endl;
+		}
+
+		wcout &lt;&lt; _T("-- Secondary Table Scores --") &lt;&lt; endl;
+		vector&lt;Score&gt; scores2 = api.GetScores( 8571 );
+		vector&lt;Score&gt;::iterator it2;
+
+		for ( it2 = scores2.begin(); it2 != scores2.end(); it2++ )
+		{
+			wcout &lt;&lt; _T("Score: ") + it2-&gt;GetScore() &lt;&lt; endl;
+		}
+
+	}
+
+	return 0;
+
+}</pre>
+Je?eli jeste? zainteresowany tym systemem achievmentów polecam samemu go przetestowa?, poniewa? ten przyk?ad jest w miar? jasny i prosty do zaimplementowania. Jednak nie ma to jak w?asny niezale?ny system achievmentów, którym raczej nie b?dziemy si? zajmowali ;)
+
+<hr />
+
+&nbsp;
+<h2><strong>Koniec tutoriala, co dalej?</strong></h2>
+<p style="text-align: justify;">Je?eli dotrwa?e? w czytaniu tego poradnika to gratuluj? i je?eli czujesz niedosyt wiedzy (co dobrze ?wiadczy o tobie) polecam samemu popróbowa? i poeksperymentowa? z SFML'em poniewa? w ten sposób najwi?cej si? nauczysz.</p>
+<p style="text-align: justify;">Koniec tego poradnika nie oznacza ko?ca SFML'a na tym blogu, b?dzie on si? pojawia?, ale coraz rzadziej, mo?liwe te? ?e pojawi si? co? odno?nie sieci w SFML'u. B?d? to poradniki bliskie pseudo kodu, w  których b?d? bardziej stara? si? wyja?nia? pewne rzeczy ni? da? wam gotowy kod.</p>
+<p style="text-align: justify;">Zapraszam do komentowania, dzieleniem si? waszymi w?tpliwo?ciami pytaniami, je?eli s? takie to postaram si? na nie odpowiedzie?.</p>
+        </body>
+    </html>

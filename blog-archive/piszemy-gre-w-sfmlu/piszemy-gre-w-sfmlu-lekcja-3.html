@@ -1,0 +1,206 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">W tej lekcji dowiesz si? w jaki sposób mo?na przystosowa? swoj? gr? do wczytywania ró?nych poziomów z pliku.</p>
+<!--more--><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span>
+
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%202.zip" target="_blank">Kod z poprzedniej lekcji</a>
+<p style="text-align: justify;">W tym poradniku skorzystam ponownie z gotowych tekstur stworzonych przez <em>riidom</em>, a konkretnie z pliku <em>prev_all.png</em> (<a href="http://opengameart.org/content/ground-bush-and-stone-tiles" target="_blank">link</a>), które umie?ci?em w folderze <em>data/images/tiles.png</em>.</p>
+
+
+[caption id="" align="aligncenter" width="192"]<a href="http://opengameart.org/sites/default/files/prev_all.png"><img class="" src="http://opengameart.org/sites/default/files/prev_all.png" alt="" width="192" height="128" /></a> tiles.png[/caption]
+<p style="text-align: justify;">Na pocz?tku zmie?my rozmiar tych kafli w dowolnym programie graficznym na 120 x 80 pikseli dzi?ki czemu nie b?dziemy si? bawili w dopasowywanie wielko?ci kafli w grze. W ten sposób otrzymamy poziom o wymiarach 32 x 18 kafli (1280/40, 720/40 gdzie 40 to wymiary kafla).</p>
+<p style="text-align: justify;">Skoro posiadamy ju? wst?pnie materia?y do naszej gry to czas stworzy? now? klas?: <strong>Level</strong>, która b?dzie si? zajmowa?a wczytywaniem poziomów z pliku. Poziomy b?d? zwyk?ymi plikami tekstowymi, ale za to z w?asnym rozszerzeniem: ".level".</p>
+
+<pre class="lang:c++ decode:true">#pragma once
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+
+class Level
+{
+public:
+
+	//funkcje skladowe klasy
+	Level();
+	Level(std::string filename);
+
+	void loadFromFile(std::string filename);
+
+	~Level(void);
+
+	//"podklasy"
+	enum FieldType {
+		NONE,
+		STONE,
+		DIRT,
+		COUNT};
+
+	struct Tile
+	{
+		FieldType type;
+		bool isWall;
+	};
+
+	//zmienne
+	const static int width = 32;
+	const static int height = 18;
+
+	const static int tile_width = 40;
+	const static int tile_height = 40;
+
+	Tile poziom[height][width];
+};</pre>
+<p style="text-align: justify;">Przeanalizujmy to co ju? mamy w samym pliku nag?ówkowym. Tak jak widzimy mo?emy wczyta? ju? poziom bezpo?rednio z konstruktora i to tyle je?eli chodzi o samo wczytywanie poziomu na tym etapie.</p>
+<p style="text-align: justify;">Dalej widzimy co? co nazwa?em "podklasami", które w rzeczywisto?ci to nic innego jak enum, który informuje nas o rodzaju tekstury. To co ju? widzimy to wczytamy jedynie 2 tekstury (NONE to pole puste): kamie? oraz ziemi?.</p>
+<p style="text-align: justify;"><em>Tile</em>, czyli nasz kafel przechowuje informacj? o typie kafla, który ma zosta? narysowany oraz to czy jest ?cian? (czy mo?na przez niego przej??).</p>
+<p style="text-align: justify;">Ostatni? sekcj? s? "zmienne", które przechowuj? sta?y rozmiar mapy podany w kaflach oraz wymiary kafelków. Polecam zapisywa? sobie takie rzeczy jako zmienne, poniewa? pó?niej gdy b?dziemy chcieli zmieni? kafle i ich rozmiar to przyjdzie nam zmieni? wymiary jedynie w paru miejscach, a nie ca?ym kodzie.</p>
+<p style="text-align: justify;">Oczywi?cie jest jeszcze tablica, która reprezentuje nasz poziom w grze, jest to zwyk?a tablica o wymiarach poziomu.</p>
+<p style="text-align: justify;">Poziom zapisany w pliku b?dzie wygl?da? tak jak poni?ej, oto przyk?adowa mapa (<em>data/levels/map.level</em>):</p>
+
+<pre class="lang:c++ highlight:0 decode:true">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 1 1 1 1 1 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+0 0 0 0 1 1 1 1 1 0 0 0 0 0 0 0 2 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</pre>
+<p style="text-align: justify;">Mo?esz powiedzie?, ?e to nic nie znacz?ca masa zer, jedynek i dwójek. Ka?da z tych cyfr oznacza pojedynczy kafel, a ich cyfra to reprezentacja <span class="lang:c++ decode:true crayon-inline">enum FieldType</span> (pami?tasz, ?e <em>enum</em> jest numerowany od 0 i u nas NULL = 0, STONE  = 1, DIRT = 2). Je?eli chcesz mo?esz doda? do pliku wymiary poziomu, je?eli chcesz je zrobi? zmienne.</p>
+<p style="text-align: justify;">Czas na wczytanie poziomu:</p>
+
+<pre class="lang:c++ decode:true" title="Level.cpp">#include "Level.h"
+#include &lt;iostream&gt;
+
+using namespace std;
+
+Level::Level(void)
+{
+
+}
+
+Level::Level(std::string filename)
+{
+	loadFromFile(filename);
+}
+
+Level::~Level(void)
+{
+}
+
+void Level::loadFromFile(std::string filename)
+{
+	fstream file;
+	file.open("data/levels/"+filename, std::ios::in);
+
+	if(!file.is_open())
+		std::cout&lt;&lt;"Nie znaleziono poziomu: "+filename;
+	else
+	{
+		for(int y=0;y&lt;height;y++)
+			for(int x=0;x&lt;width;x++)
+			{
+				int tmp;
+				file&gt;&gt;tmp;
+				poziom[y][x].type = FieldType(tmp);
+
+				if(tmp==0)
+					poziom[y][x].isWall = false;
+				else
+					poziom[y][x].isWall = true;
+			}
+		}
+
+	file.close();
+}</pre>
+<p style="text-align: justify;">Proponuje samotnie przeanalizowa? w jaki sposób dzia?a wczytywanie poziomu, mówi?c szczerze nie powinno tutaj nic sprawi? problemu. Jedyne co mo?e zastanowi? to fakt, ?e na pocz?tku w tablicy mamy pozycj? Y, a nie X. Jest to nie bez powodu, a to dlatego, ?e podczas wczytywania poziomu poruszamy si? po pliku fragmentami id?c z lewej strony do prawej, a nie z góry do do?u.</p>
+<p style="text-align: justify;">Najwy?szy czas wy?wietli? nasz poziom w klasie <strong>Engine</strong>. Ale wcze?niej czas przygotowa? sobie kilka nowych typów:</p>
+
+<pre class="lang:c++ decode:true" title="Engine.h">#include "Player.h"
+#include "Level.h"
+
+class Engine
+{
+public:
+	Engine(sf::RenderWindow &amp;win);
+	~Engine(void);
+
+	void runEngine(sf::RenderWindow &amp;window);
+
+private:
+	Player player;
+	Level level; //poziom gry
+
+	sf::Texture tekstura[Level::COUNT]; //tekstury kafli
+	sf::Sprite sprite[Level::height][Level::width]; //poziom widziany przez gracza
+};</pre>
+<p style="text-align: justify;">Tworzymy sobie obiekt klasy <strong>Level</strong>, b?dzie on nam przetrzymywa? nasze dane poziomu, nowo?ci? mamy tak?e tablic? przechowuj?ce tekstury poszczególnych kafelków oraz tablica ze sprite'ami.</p>
+<p style="text-align: justify;">Zasz?y tak?e zmiany w konstruktorze:</p>
+
+<pre class="lang:c++ decode:true" title="Konstruktor">Engine::Engine(sf::RenderWindow &amp;win)
+{
+	//wczytanie tekstur
+	for(int i=1;i&lt;Level::COUNT;i++)
+	{
+		tekstura[i].loadFromFile("data/images/tiles.png",IntRect((i-1)*level.tile_width,0,level.tile_width,level.tile_height));
+	}
+
+	//ustawienie kafli
+	level.loadFromFile("map.level");
+	for(int i=0;i&lt;level.height;i++)
+	{
+		for(int j=0;j&lt;level.width;j++)
+		{
+			if(level.poziom[i][j].type != Level::NONE)
+			{
+				sprite[i][j].setTexture(tekstura[level.poziom[i][j].type]);
+				sprite[i][j].setPosition(j*level.tile_width,i*level.tile_height);
+			}
+		}
+	}
+	runEngine(win);
+}</pre>
+<p style="text-align: justify;">W konstruktorze wczytujemy poziom, tekstury i ustawiamy kafelki na odpowiednich pozycjach</p>
+<p style="text-align: justify;">Ostatni? zmian? jest narysowanie poziomu, robimy to w metodzie <em>runEngine()</em>.</p>
+
+<pre class="lang:c++ decode:true" title="runEngine()">player.update(mysz);
+
+window.clear();
+
+//rysowanie poziomu
+for(int i=0;i&lt;level.height;i++)
+{
+	for(int j=0;j&lt;level.width;j++)
+	{
+		if(level.poziom[i][j].type != Level::NONE)
+			window.draw(sprite[i][j]);
+	}
+}
+
+window.draw(player);
+window.display();</pre>
+<p style="text-align: justify;">Jak widzimy dosz?a podwójna p?tla, która wy?wietla nasze kafelki, warto zaznaczy? ?e kolejno?? w jakiej wy?wietlamy map? i kafelki jest wa?na, jest to zwi?zane ?ci?le z kolejno?ci? wykonywania instrukcji w c++, kompilator odbiera to w ten sposób: wyczy?? pozosta?e piksele z poprzedniej klatki, narysuj t?o (poziom), pó?niej gracza (o tym by?a mowa w <em>Kursie Podstawowym SFML</em>)</p>
+<p style="text-align: justify;">W tej lekcji nauczyli?my si? wczytywa? poziomy o sta?ej i niezmiennych wymiarach, je?eli chcesz wiedzie? jak wczyta? rozmiar poziomu z pliku i jak zrobi? odpowiednio du?? tablic? do tego poziomu to zapraszam <a title="Wczytywanie map o niezdefiniowanych rozmiarach" href="http://unknown/wczytywanie-map-o-niezdefiniowanych-rozmiarach/" target="_blank">tutaj</a>.</p>
+<p style="text-align: justify;">Jednak przy du?ych poziomach trzeba odpowiednio zapanowa? nad ilo?ci? rysowanych kafelków (aby niepotrzebnie wy?wietla? np 100 kafelków, które jest poza widoczn? cz??ci? gry) o tym przeczytasz <a title="[SFML] Wczytywanie du?ych poziomów (przewijana mapa)" href="http://unknown/sfml-wczytywanie-duzych-poziomow-przewijana-mapa/" target="_blank">w tym</a> wpisie.</p>
+<p style="text-align: justify;"><img class="aligncenter" src="https://sites.google.com/site/sheadovasdatabase/home/images/MTE%2C%20lekcja%202.png" alt="" width="734" height="413" /></p>
+&nbsp;
+
+<strong>Kod ?ród?owy:</strong>
+
+<a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%203%20cz.1.zip">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="https://github.com/sheadovas/Kurs_SFML/tree/master/Lekcja%203%20cz.1" target="_blank">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>

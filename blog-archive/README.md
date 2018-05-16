@@ -1,5 +1,7 @@
 # Blog Archives
 
+*Update 16.05.2018*
+
 Hej, jeżeli tu trafiłes to oznacza ze probowałeś się dostac na mojego starego bloga, ktory zostal zamkniety.
 
 Szczęśliwie dla Ciebie nie wszystko przepadło ;) Znajdziesz tutaj część wpisów z czasów "świetności bloga", 
@@ -15,6 +17,12 @@ a więc mówię tu o seriach:
 8. **proj-platf-rpg** - poradnik z pisania gier plaformowych i RPG
 9. **RElog** - reverse-enginnering, itp
 10. **Rozwoj-osobisty** - o slight-edge
+
+
+#### Dodane na Wasze życzenie:
+
+1. **Piszemy gre w SFML'u** - mega przestarzały kurs SFML, ale jak chcecie to macie ;)
+2. Qt - soon...
 
 Wpisy znajdują się w odpowiadających im kategoriach z bloga,
 

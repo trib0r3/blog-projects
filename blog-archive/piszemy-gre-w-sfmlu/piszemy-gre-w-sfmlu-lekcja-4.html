@@ -1,0 +1,753 @@
+
+    <html>
+        <head>
+            <meta name="pdfkit-page-size" content="Legal"/>
+            <meta name="pdfkit-orientation" content="Landscape"/>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <p style="text-align: justify;">Dzisiaj zajmiemy si? generowaniem jednostek, a tak?e kolizj?. Czas aby nasza gra mia?a wi?kszy cel, czyli przetrwanie poszczególnych fal.</p>
+<p style="text-align: justify;"><!--more--></p>
+<p style="text-align: justify;"><span style="color: #ff0000;"><strong>!UWAGA!</strong> Kurs le?y w kategorii 'Obsolete' co oznacza, ?e mo?e by? nieaktualny, zawiera? b??dy i nie polecam z niego korzysta?. [<a href="http://unknown/obsolete/piszemy-gre-w-sfmlu/piszemy-gre-w-sfmlu/">INFO</a>]</span></p>
+<p style="text-align: justify;"><a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%203.3%20fixed.zip">Kod z poprzedniej lekcji</a></p>
+<p style="text-align: justify;">Jak ju? wspomnia?em dzisiaj zajmiemy si? obs?ug? jednostek na scenie naszej gry, jednak zanim nimi si? zajmiemy to napiszmy sobie zabezpieczenie dzi?ki któremu nasz gracz nie b?dzie ucieka? nam poza ekran:</p>
+
+<pre class="lang:c++ decode:true">void Player::update()
+{
+	shape.move(vx,vy);
+
+	vx = vx - vx * 0.02f;
+	vy = vy - vy * 0.02f;
+
+	if(shape.getPosition().x &gt;= 1280 + 5)
+		shape.setPosition(0,shape.getPosition().y);
+
+	else if(shape.getPosition().x &lt;= 0-5)
+		shape.setPosition(1280,shape.getPosition().y);
+
+
+ 	if(shape.getPosition().y &gt;= 720 + 5)
+		shape.setPosition(shape.getPosition().x,0);
+
+	else if(shape.getPosition().y &lt;= 0-5)
+		shape.setPosition(shape.getPosition().x,720);
+}</pre>
+<p style="text-align: justify;">Dodali?my dwie "serie/bloki" if'ów, jeden blok zawiera po 2 if'y odpowiednio dla pozycji X jak i Y. Omówi? teraz jak dzia?aj? te warunki na podstawie jednego bloku if'a dla pozycji X (pozycja Y dzia?a w analogiczny sposób):</p>
+
+<pre class="lang:c++ decode:true">if(shape.getPosition().x &gt;= 1280 + 5)
+	shape.setPosition(0,shape.getPosition().y);
+
+else if(shape.getPosition().x &lt;= 0-5)
+	shape.setPosition(1280,shape.getPosition().y);</pre>
+<p style="text-align: justify;">Pierwszy warunek nam sprawdza czy gracz nie wyszed? za ekran z prawej strony, jak zapewne zauwa?y?e?/a? podzieli?em akurat w tym wypadku liczb? 1285 na 2 cz??ci: 1280 i 5. Zrobi?em to dlatego aby ?atwiej ci by?o zauwa?y? co oznacza ta liczba, bo np zamiast 1280 móg?bym tam wstawi? zmienn? oznaczaj?c? szeroko?? ekranu np. SCREEN_WIDTH. A co oznacza liczba 5? Jest to liczba która okre?la margines za który mo?e wyj?? gracz poza ekran, dzi?ki temu gdy gracz tylko dotknie pozycj? 1280 to nie zostanie od razu przeniesiony na pozycj? (0,Y).</p>
+<p style="text-align: justify;">Jak zapewne zauwa?y?e?/a? pobieramy pozycj? od <em>shape</em> i jak doskonale pami?tamy ustawili?my sobie ?rodek naszej figury na zerowy wierzcho?ek:</p>
+<p style="text-align: justify;"><img class="aligncenter" src="https://sites.google.com/site/sheadovasdatabase/home/images/gracz.png" alt="" width="100" height="100" /></p>
+&nbsp;
+<p style="text-align: justify;">Nast?pnie w razie spe?nienia warunku ustawiamy nasz? pozycj? zmieniaj?c jedynie pozycj? X na przeciwleg?y kraniec, a Y zostawiamy tak jak by?. W sumie mogliby?my tak?e sprawi?, ?e kamera porusza?aby si? za graczem, mo?na by to by?o zrobi? za pomoc? <em>sf::View</em>, ale o tym kiedy indziej.</p>
+<p style="text-align: justify;">Wró?my do meritum tej lekcji, czyli jednostek oraz kolizji. Zanim zaczniemy pisa? kod nale?y si? zastanowi? czym w?a?ciwie jednostka? Jednostk? mo?emy nazwa? ka?dy obiekt w naszej grze, czyli jednostk? mo?emy nazwa? mi?dzy innymi gracza. Jednostk? mo?e by? tak?e pocisk który wystrzeli gracz, a tak?e ten wystrzelony przez komputer, jednostkami b?d? tak?e wrogie statki oraz asteroidy.</p>
+<p style="text-align: justify;">Zajmijmy si? teraz najprostsz? jednostk? czyli pociskiem. tworzymy klas? od której b?dziemy dziedziczy?, nazwiemy j? <strong>Entity</strong> (od jednostek), b?dzie ona dziedziczy?a po <strong>Drawable</strong>, dzi?ki czemu w ?atwy sposób b?dziemy j? mogli narysowa? :).</p>
+
+<pre class="lang:c++ decode:true" title="Entity.h">#pragma once
+#include &lt;SFMLGraphics.hpp&gt;
+
+using namespace sf;
+
+class Entity: public Drawable
+{
+public:
+	Entity(bool = true);
+	~Entity(void);
+
+	virtual void setColor(float,float,float,float)=0;
+
+protected:
+	bool can_hurt_player;
+
+	virtual void draw(sf::RenderTarget &amp;target,sf::RenderStates states) const=0;
+};</pre>
+<pre class="lang:c++ decode:true" title="Entity.cpp">#include "Entity.h"
+
+Entity::Entity(bool chp)
+{
+	can_hurt_player = chp;
+}
+
+Entity::~Entity(void)
+{
+}</pre>
+<p style="text-align: justify;">Jak widzimy niewiele rzeczy teraz posiada, mamy zmienn? <em>bool</em>, która decyduje o tym czy ta jednostka mo?e skrzywdzi? gracza (przecie? nie chcemy aby gracz zestrzeli? si? w?asnymi pociskami). Zróbmy teraz strzelanie krok po kroku, tworzymy klas? <strong>Bullet</strong>, która b?dzie tak?e naszym systemem pocisków, je?li pocisk ucieknie poza ekran to my go usuniemy:</p>
+
+<pre class="lang:c++ decode:true" title="Bullet.h">#include "entity.h"
+#include &lt;vector&gt;
+
+#pragma once
+
+class Bullet : public Entity,Drawable,Transformable
+{
+public:
+	Bullet(bool = true);
+	~Bullet(void);
+
+	void add(Vector2f,Vector2f);
+	void remove(int it);
+
+	void update();
+
+	virtual void setColor(Color = Color::White);
+
+private:
+	VertexArray m_bullet;
+	Color color;
+
+	std::vector &lt;Vector2f&gt; factor;
+
+	virtual void draw(sf::RenderTarget &amp;target,sf::RenderStates states) const;
+};</pre>
+<p style="text-align: justify;">Dziedziczy ona po klasie <strong>Entity</strong> oraz <strong>Transformable</strong> oraz si?? rzeczy po <strong>Drawable</strong> (klasa <strong>Entity</strong> dziedziczy <strong>Drawable</strong>). Sam kod b?dziemy jeszcze rozbudowywa?, jednak teraz zajmijmy si? w?a?ciwym kodem:</p>
+
+<pre class="lang:c++ decode:true" title="Konstruktor">Bullet::Bullet(bool can)
+{
+	can_hurt_player = can;
+	m_bullet.setPrimitiveType(Points);
+
+	color = Color::White;
+}</pre>
+<p style="text-align: justify;">Konstruktor jest raczej standardowy, ustawia czy pociski mog? skrzywdzi? gracza, a tak?e typ kszta?tu oraz kolor. Destruktor obecnie jest pusty, a wi?c nim si? nie b?dziemy zajmowa?.</p>
+<p style="text-align: justify;">Teraz co? ciekawego, dodawanie kolejnych pocisków:</p>
+
+<pre class="lang:c++ decode:true" title="add(...)">void Bullet::add(Vector2f f,Vector2f pos)
+{
+	Vertex vert;
+	vert.position = pos;
+	vert.color = color;
+
+	m_bullet.append(vert);
+	factor.push_back(f);
+}</pre>
+<p style="text-align: justify;">Argumenty przyjmuj? odpowiednio: <em>f</em>, czyli faktor po którym ma si? porusza? nasz pocisk oraz <em>pos</em>, czyli pozycja pocz?tkowa, metoda <em>append</em> dodaje kolejny <em>vertex</em> do naszego <em>VertexArray</em>, podobnie robimy z <em>f</em>: "wrzucamy" go do naszego <em>vectora factor</em>, ta metoda b?dzie u?ywana gdy gracz b?dzie chcia? wystrzeli? pocisk.</p>
+
+<pre class="lang:c++ decode:true">void Bullet::remove(int it)
+{
+	for(int i=it;i&lt;factor.size()-1;i++)
+	{
+		std::swap(factor[i],factor[i+1]);
+		std::swap(m_bullet[i],m_bullet[i+1]);
+	}
+
+	factor.resize(factor.size()-1);
+	m_bullet.resize(factor.size());
+}
+
+void Bullet::update()
+{
+	for(int i=0;i&lt;factor.size();i++)
+	{
+		m_bullet[i].position += Vector2f(3*factor[i].x,3*factor[i].y);
+	}
+}
+
+void Bullet::setColor(Color c)
+{
+	color = c;
+}
+
+void Bullet::draw(RenderTarget &amp;target, RenderStates states) const
+{
+	states.transform *= getTransform();
+
+	states.texture = NULL;
+
+	target.draw(m_bullet,states);
+}</pre>
+<p style="text-align: justify;">Teraz zajmiemy si? <em>remove</em>, które ma za zadanie okre?lony pocisk usun?? z tablicy poprzez przesuni?cie go na sam koniec i zmniejszenie po tym tablicy. Metod? <em>update</em> zajmiemy si? za chwil?, zmienimy tak?e jej zawarto?? poniewa? ona by?a jedynie testowa. Reszta kodu powinna by? prosta do zrozumienia, mam tak?e zadanie dla ciebie, zmie? metod? <em>setColor</em> tak aby zmienia?a kolor WSZYSTKICH pocisków, tak?e tych wystrzelonych.</p>
+<p style="text-align: justify;">Czas na przetestowanie obecnie dzia?aj?cego kodu, na chwil? wró?my do klasy <strong>Player</strong> i zmienimy metod? <em>getPosition(int)</em>, a to dlatego ?e obecnie zwracana tam metoda <em>getPoint(index)</em> nie zwraca?a bie??cej pozycji punktu, musimy j? zamieni? na:</p>
+
+<pre class="lang:c++ decode:true">sf::Vector2f Player::getPosition(size_t index)
+{
+	return shape.getTransform().transformPoint(shape.getPoint(index));
+}</pre>
+<p style="text-align: justify;">W ten sposób dostajemy pozycj? punktu po wszelkich transformacjach typu zmiana pozycji, rotacje itp.</p>
+<p style="text-align: justify;">Idziemy do klasy <strong>Engine</strong> gdzie tworzymy obiekt (w <em>Engine.h</em>): <span class="lang:c++ decode:true crayon-inline">Bullet bullets_player;</span> i dopisujemy odpowiednio:</p>
+
+<pre class="lang:c++ decode:true">//w konstruktorze
+bullets_player = Bullet(false);
+
+//update()
+bullets_player.update();
+
+//draw()
+window-&gt;draw(bullets_player);</pre>
+<p style="text-align: justify;">Tych linii nie b?dziemy ju? zmienia?, przejd?my do <em>runEngine()</em> i pod warunkami wci?ni?cia klawiszy dopisujemy:</p>
+
+<pre class="lang:c++ decode:true">if(Keyboard::isKeyPressed(Keyboard::LControl))
+{
+	bullets_player.add(player.getVelocity(),player.getPosition(2));
+}</pre>
+<p style="text-align: justify;">Ten warunek jeszcze ulegnie zmianom, ale o tym za chwil?. Gdyby?my teraz uruchomili kod zobaczymy jego niedoskona?o??, mianowicie pociski b?d? lecia?by w prawid?ow? stron? lecz tylko wtedy gdy gracz si? porusza (polecam kod w tym momencie uruchomi?, <a href="https://sites.google.com/site/sheadovasdatabase/piszemy-gre-w-sfml-u/Lekcja%204%20%28test%29.zip">link do obecnej wersji kodu</a>).</p>
+<p style="text-align: justify;">Wró?my na chwil? do klasy <strong>Player</strong> i dodajmy jedn? metod?:</p>
+
+<pre class="lang:c++ decode:true">Vector2f Player::getAngle()
+{
+ float angle = shape.getRotation();
+
+ float xN = static_cast&lt;float&gt;(sin((speed) * M_PI * (angle / 360)));
+ float yN = static_cast&lt;float&gt;(cos((speed) * M_PI * (angle / 360)));
+
+ return Vector2f(vx+xN,vy-yN);
+}</pre>
+<p style="text-align: justify;">Ten kod powinien by? dla was znajomy, zwraca on factor pod jakim ma lecie? odpowiedni pocisk zwi?kszony o pr?dko?? gracza w danej chwili, przy zmienieniu dodatkowo w <em>Bullet update</em> te warto?ci razy 2 dostaniemy 2 razy szybsze pociski:</p>
+
+<pre class="lang:c++ decode:true">void Bullet::update()
+{
+	for(int i=0;i&lt;factor.size();i++)
+	{
+		m_bullet[i].position += Vector2f(factor[i].x*2,factor[i].y*2);
+	}
+}</pre>
+<p style="text-align: justify;">Teraz zajmijmy si? usuwaniem pocisków bo przecie? nie chcemy sytuacji gdy gra nam si? posypie bo tak zaspamujemy gr? pociskami, ?e nie wystarczy pami?ci.</p>
+
+<pre class="lang:c++ decode:true ">void Bullet::update()
+{
+	std::cout&lt;&lt;"Pociski przed: "&lt;&lt;factor.size()&lt;&lt;" ";
+	for(int i=0;i&lt;factor.size();i++)
+	{
+		m_bullet[i].position += Vector2f(factor[i].x*2,factor[i].y*2);
+
+		if(m_bullet[i].position.x &gt; 1280 || m_bullet[i].position.x &lt; 0 ||
+			m_bullet[i].position.y &gt; 720 || m_bullet[i].position.y &lt; 0)
+		{
+			remove(i);
+		}
+	}
+	std::cout&lt;&lt;"Pociski po: "&lt;&lt;factor.size()&lt;&lt;std::endl;
+}</pre>
+<p style="text-align: justify;">Wy?wietlamy sobie obecny stan pocisków przed aktualizacj? oraz po:</p>
+<img class="aligncenter" src="https://sites.google.com/site/sheadovasdatabase/home/images/konsola.png" alt="" width="421" height="273" />
+<p style="text-align: justify;">Jak wida? kod dzia?a, lecz strzelamy za szybko, gdyby?my tak strzelali w naszej grze gra traci?aby sens po potrafimy wystrzeli? bardzo du?o pocisków w ma?ym czasie. Dlatego te? ustawimy 2 ograniczenia: cz?stotliwo?? z jak? b?d? wystrzelane pociski oraz ilo?? amunicji, na pocz?tku idziemy do klasy <strong>Bullet</strong> i dodajemy 2 zmiene: <em>Clock timer</em>, <em>Time frequency</em>, zmieniamy tak?e konstruktor i dodajemy mu argument <span class="lang:c++ decode:true crayon-inline">int = 500</span> i dopisujemy w nim:</p>
+
+<pre class="lang:c++ decode:true">Bullet::Bullet(bool can, int f)
+{
+	can_hurt_player = can;
+	m_bullet.setPrimitiveType(Points);
+
+	color = Color::White;
+	frequency = milliseconds(f);
+}</pre>
+W metodzie <strong>add</strong> dodajemy warunek:
+<pre class="lang:c++ decode:true">if(timer.getElapsedTime() &gt; frequency)
+{
+	m_bullet.append(vert);
+	factor.push_back(f);
+
+	timer.restart();
+}</pre>
+<p style="text-align: justify;">Teraz strzelamy pociskami z du?? przerw? bo co pó? sekundy, warto tak?e dorobi? metod? zmieniaj?c? pr?dko?? tak aby mo?na by?o w to integrowa? po dzia?aniu gry, np jako bonus czasowy przyspieszaj?cy pr?dko?? strzelania po zebraniu jakiej? paczki.</p>
+<p style="text-align: justify;">Czas na amunicje, dodajemy do <strong>Bullet</strong> 2 zmienne: <em>int ammunition</em> oraz <em>bool infinite</em>, pierwsza oznacza ile amunicji posiadamy, 2 czy amunicja jest niesko?czona, ustawiamy w konstruktorze odpowiednio warto?ci tym zmiennym: <em>100</em> oraz <em>false</em>. Tworzymy tak?e now? metod? <span class="lang:c++ decode:true crayon-inline">void addAmmunition(int ammo=100)</span>.</p>
+
+<pre class="lang:c++ decode:true">void Bullet::addAmmunition(int ammo)
+{
+	ammunition+=ammo;
+}</pre>
+<p style="text-align: justify;">My?l? ?e spraw? pocisków mamy ju? na razie za?atwion?, czas na naszego wroga: asteroidy.</p>
+
+
+<hr />
+<p style="text-align: justify;">Tworzymy now? klas? o nazwie <strong>Asteroids</strong> i zastanówmy si? przez chwil? jak ta klasa powinna wygl?da?:</p>
+
+<ul style="text-align: justify;">
+	<li>powinna móc generowa? asteroidy ró?nej wielko?ci,</li>
+	<li>du?e asteroidy po zniszczeniu przechodz? w mniejsze,</li>
+	<li>poruszaj? si? ruchem jednostajnym prostoliniowym, w przypadku gdy zostaj? zniszczone odrywaj? si? w ró?nych kierunkach,</li>
+	<li>po opuszczeniu ekranu usuwaj? si? z pami?ci.</li>
+</ul>
+<p style="text-align: justify;">Na podstawie tego mo?emy ju? wypisa? sobie kilka nowych metod:</p>
+
+<pre class="lang:c++ decode:true">void generate(int ile, int x=0,int y=0); //generowanie nowych asteroid
+void del(int index);//usuwanie
+void update();//aktualizowanie pozycji na ekranie,itp</pre>
+<p style="text-align: justify;">W zasadzie nie ma co tutaj analizowa?, z za?o?enia wszystko jest ?atwe do zrealizowania, a tak wygl?da ca?y plik nag?ówkowy:</p>
+
+<pre class="lang:c++ decode:true" title="Asteroids.h">#pragma once
+#include "entity.h"
+#include &lt;vector&gt;
+
+using namespace std;
+
+class Asteroids : public Entity,Transformable
+{
+public:
+	Asteroids(bool = true);
+	~Asteroids(void);
+
+	virtual void setColor(Color=Color::White);
+
+	void generate(int ile, int = 0,int y=0);
+	void del(int index);
+
+	void update();
+
+private:
+	Color m_color;
+
+	struct Asteroid
+	{
+		Vector2f speed;
+		ConvexShape shape;
+		bool big;
+	};
+
+	vector &lt;Asteroid&gt; m_asteroids;
+	virtual void draw(sf::RenderTarget &amp;target,sf::RenderStates states) const;
+};</pre>
+<p style="text-align: justify;">Radz? przeanalizowa? co poszczególne rzeczy mog? robi? jak nam si? przydadz?, np ?atwo wywnioskowa?, ?e struktura <strong>Asteroid</strong> jest stworzona jedynie dla naszej wygody, przechowuje ona pr?dko?? z jak? si? porusza, sam jej kszta?t oraz czy jest du?a (parametr <em>big</em>), tzn. czy si? rozpada na mniejsze po zniszczeniu. Tutaj mamy taki "standard" metod:</p>
+
+<pre class="lang:c++ decode:true" title="Asteroids.cpp">#include "Asteroids.h"
+#include &lt;ctime&gt;
+#include &lt;cstdlib&gt;
+
+Asteroids::Asteroids(bool can)
+{
+	can_hurt_player = can;
+}
+
+Asteroids::~Asteroids(void)
+{
+}
+
+void Asteroids::setColor(Color c)
+{
+	m_color = c;
+}
+
+void Asteroids::draw(RenderTarget &amp;target, RenderStates states) const
+{
+	states.transform *= getTransform();
+
+	states.texture = NULL;
+
+	for(int i=0;i&lt;m_asteroids.size();i++)
+	{
+		target.draw(m_asteroids[i].shape,states);
+	}
+}</pre>
+<p style="text-align: justify;">Jednak zajmijmy si? pierwsz? wersj? metody <strong>generate</strong> jak? stworzy?em, chc? ci j? pokaza? aby? zrozumia?/a ?e nie ma sensu komplikowa? sobie czasami ?ycia:</p>
+
+<pre class="lang:c++ decode:true">void Asteroids::generate(int ile,int x, int y)
+{
+	srand(time(NULL));
+
+	for(int i=0;i&lt;ile;i++)
+	{
+		Asteroid ast;
+
+		if(x==0 &amp;&amp; y==0)
+		{
+			if(rand()%10&gt;4)ast.big=true; else ast.big=false;
+ 			x = rand()%1280+5;
+			y = rand()%720+5;
+		}
+		int radius = 40;
+		if(ast.big) radius*=2;
+
+		ConvexShape shape;
+		shape.setPointCount((rand()%3)+4);
+
+		for(int j=0;j&lt;shape.getPointCount();j++)
+		{
+			shape.setPoint(j,Vector2f(rand()%radius+1+x-radius/2,rand()%radius+1+y-radius/2));
+		}
+		shape.setOutlineColor(Color::White);
+		shape.setFillColor(Color::Black);
+		shape.setOutlineThickness(3);
+		shape.setPosition(x,y);
+
+		ast.shape = shape;
+		m_asteroids.push_back(ast);
+	}
+}</pre>
+<p style="text-align: justify;">Kod dzia?a, nie powiem ?e nie, ale rezultat nie jest taki jak powinien by?, wychodzi nam bardzo cz?sto takie co? jak na rysunku po lewej, a zale?y nam zawsze na czym? w rodzaju figury po prawej:</p>
+<p style="text-align: justify;"><img class="aligncenter" src="https://sites.google.com/site/sheadovasdatabase/home/images/asteroidy.png" alt="" width="353" height="165" /></p>
+<p style="text-align: justify;">Teraz nale?y zauwa?y?, ?e mo?na podobny do tego uzyska? efekt w bardzo ?atwy sposób, mianowicie, mamy ?rodek okr?gu oraz jego promie?, jedyne co teraz musimy zrobi? to wyliczy? wspó?rz?dne punktu na okr?gu o ?rodku (x,y) i promieniu r, wtedy b?dziemy mieli po??dany przez nas efekt.</p>
+<p style="text-align: justify;"><a href="http://www.shead.ayz.pl/wp-content/uploads/2014/06/06_sat_alg-scheme.png"><img class="aligncenter wp-image-1821 " src="http://www.shead.ayz.pl/wp-content/uploads/2014/06/06_sat_alg-scheme-420x420.png" alt="06_sat_alg-scheme" width="361" height="361" /></a></p>
+<p style="text-align: justify;">Skoro ju? wiemy jak w teorii b?dziemy generowa? asteroid?, czas na praktyk?, czyli kod:</p>
+
+<pre class="lang:c++ decode:true">void Asteroids::generate(int ile,int x, int y)
+{
+	srand(time(NULL));
+
+	for(int i=0;i&lt;ile;i++)
+	{
+		Asteroid ast;
+		ast.big=false;
+		if(x==0 &amp;&amp; y==0)
+		{
+			if(rand()%10&gt;4)ast.big=true; else ast.big=false;
+
+			x = rand()%1280+5;
+			y = rand()%720+5;
+		}
+		int radius = 40;
+		if(ast.big) radius*=1.5;
+
+		//generowanie figury
+		ConvexShape shape;
+		shape.setPointCount((rand()%3)+5);
+
+		int size = shape.getPointCount();
+
+		for(int j=0;j&lt;size;j++)
+		{
+			float alpha = rand()%(360/size)+j*(360/size);
+			alpha=(alpha*M_PI)/180;
+			shape.setPoint(j,Vector2f(x+cos(alpha)*radius,y+sin(alpha)*radius));
+		}
+		shape.setOrigin(shape.getPoint(0));
+
+		shape.setOutlineColor(Color::White);
+		shape.setFillColor(Color::Black);
+
+		shape.setOutlineThickness(1);
+		shape.setPosition(x,y);
+
+		ast.shape = shape;
+
+		//ustawianie pr?dko?ci
+		float vx,vy;
+
+		vx = (rand()%4-2)/1.5f;
+		vy = (rand()%4-2)/1.5f;
+
+		ast.speed = Vector2f(vx,vy);
+
+		m_asteroids.push_back(ast);
+	}
+}</pre>
+<p style="text-align: justify;">Ten kod akurat zas?uguje na omówienie: na pocz?tku sprawdzamy czy wspó?rz?dne s? równe (0,0), standardowo taka wspó?rz?dna oznacza ?e ma wygenerowa? si? zupe?nie nowa asteroida, je?li ma podane wspó?rz?dne oznacza to ?e powsta?a z rozpadu wi?kszej wi?c musi by? ma?a.</p>
+<p style="text-align: justify;">Nast?pnie ustawiamy wielko?? promienia, w przypadku du?ej jest o 50% wi?kszy od ma?ego, w kolejnym kroku losujemy ilo?? wierzcho?ków z kilkoma ogranicznikami: co najmniej musi by? ich 5, a maksymalnie 7.</p>
+<p style="text-align: justify;">W nieszcz?snej (dla mnie) p?tli losujemy pozycje wierzcho?ków, ta linia jes bardzo wa?na: <span class="lang:c++ decode:true crayon-inline">float alpha = rand()%(360/size)+j*(360/size);</span>, rozbijmy to sobie na 2 cz??ci:</p>
+
+<ol style="text-align: justify;">
+	<li><em>rand()%(360/size)</em> - ta cz??ci losuje k?t tylko w pierwszej cz??ci ko?a, tzn, je?li figura ma 4 wierzcho?ki to liczba jest losowana z przedzia?u [0,90).</li>
+	<li><em>j*(360/size)</em> - ta warto?? jest dodawana do poprzedniej, oznacza ona w której cz??ci ko?a losowano liczb?, tzn: mamy 4 wierzcho?ki, a wi?c ko?o jest podzielone na 4 ?wiartki: 0-90, 90-180, 180-270, 270-360, za?ó?my ?e w pierwszym kroku wylosowali?my liczb? '45', tzn ?e wylosowany k?t dla 2 ?wiartki to 45 + 1*(360/4 =&gt; 90) = 135, czyli <em>alpha</em> wynosi 135.</li>
+</ol>
+<p style="text-align: justify;">Kolejna linia to konwersja k?ta na radiany, dalej mamy liczon? wspó?rz?dn? punktu maj?c ?rodek okr?gu (zmienne <strong>x</strong>,y) i jego promie? (radius), jak liczymy poszczególne wierzcho?ki?</p>
+
+<ul style="text-align: justify;">
+	<li><em>x</em> + cos(<em>alpha</em>) * <em>radius</em></li>
+	<li><em>y</em> + sin(<em>alpha</em>) * <em>radius</em></li>
+</ul>
+<p style="text-align: justify;">To s? ogólne wzorki, aby do nich doj?? wystarczy kartka papieru, d?ugopis oraz wiedza matematyczna, niech mi teraz kto? powie, ?e matma si? nie przydaje ;). Nie b?dziemy sobie tego tutaj rozpisywa? jak do tego doj??, zaciekawionych zapraszam do próbowania zrobienia tego samemu.</p>
+<p style="text-align: justify;">Nast?pnie widzimy dosy? ?atwy kod, poszli?my na ?atwizn? i ustawiamy punkt wg którego obs?ugujemy nasz? asteroid? z punktu 0, a nie z jego ?rodka ci??ko?ci, je?li chcesz mo?esz to napisa? i pochwali? si? w komentarz.</p>
+<p style="text-align: justify;">Losowanie pr?dko?ci jest dosy? proste, na obecn? chwil? nie potrzebujemy niczego bardziej zaawansowanego.</p>
+<p style="text-align: justify;">Skoro mamy mo?liwo?? tworzenia asteroid, przyda?oby si? móc je usuwa? ze sceny gry, czyli czas na <em>del()</em></p>
+
+<pre class="lang:c++ decode:true">void Asteroids::del(int it)
+{
+	for(int i=it;i&lt;m_asteroids.size()-1;i++)
+	{
+		std::swap(m_asteroids[i],m_asteroids[i+1]);
+	}
+
+	m_asteroids.resize(m_asteroids.size()-1);
+}</pre>
+<p style="text-align: justify;">Kod jest nam znany, jest dos?ownie skopiowany z <em>remove</em> z klasy <strong>Bullet</strong>.</p>
+
+
+[caption id="" align="aligncenter" width="322"]<img src="https://sites.google.com/site/sheadovasdatabase/home/images/asteroidy%20przyk%C5%82ady.png" alt="" width="322" height="322" /> Efekt dzia?ania kodu[/caption]
+<p style="text-align: justify;">Czas na update, je?eli ustawi?e? <em>Origin</em> na ?rodek ci??ko?ci figury, to mo?esz doda? te? obracanie figury w bardzo ?atwy sposób: po prostu dodaj w strukturze <strong>Asteroid</strong> zmienn? która decyduje o rotacji.</p>
+
+<pre class="lang:c++ decode:true">void Asteroids::update()
+{
+	//usuwanie
+	for(int i=0;i&lt;m_asteroids.size();i++)
+	{
+		Vector2f pos = m_asteroids[i].shape.getPosition();
+		if(pos.x &gt; 1290 || pos.x &lt; -10 || pos.y &gt; 730 || pos.y &lt; -10)
+			del(i);
+	}
+
+	//ruch jednostajny
+	for(int i=0;i&lt;m_asteroids.size();i++)
+	{
+		m_asteroids[i].shape.move(m_asteroids[i].speed);
+	}
+}</pre>
+<p style="text-align: justify;">Musz? przyzna?, ?e ca?kiem ?adnie nam to wysz?o i chcia?oby a? si? rzecz ?e spraw? mamy za?atwion?, lecz pozosta?a nam jeszcze 1 rzecz: metoda zwracaj?ca pozycj? poszczególnych wierzcho?ków dla odpowiedniej asteroidy.</p>
+
+<pre class="lang:c++ decode:true">Vector2f Asteroids::getPoint(int i,int it)
+{
+	return m_asteroids[i].shape.getTransform().transformPoint(m_asteroids[i].shape.getPoint(it));
+}</pre>
+<p style="text-align: justify;">Ta metoda te? jest ci doskonale znana, nieco bardziej rozbudowana z klasy <strong>Player</strong> tylko ?e z dwoma argumentami: <em>i</em> to nr asteroidy, <em>it</em> to nr punktu w tej asteroidzie.</p>
+
+
+<hr />
+<p style="text-align: justify;">Polecam tutaj zrobi? sobie przerw?, poniewa? zaraz rozpoczniemy kolizje, takie przerwy podczas intensywnego my?lenia maj? niesamowicie dobry wp?yw na my?lenie po powrocie.</p>
+<p style="text-align: justify;">Kolizje to co? co musi znale?? si? w ka?dej grze, w SFML mamy narz?dzie dzi?ki któremu mo?emy w ?atwy sposób sprawdzi? czy zachodzi kolizja, ale (zawsze jest jakie? ale) nie jest ono dok?adne, a raczej nie jest ono dok?adne w obiektach innych ni? prostok?t, czy kwadrat nie poddany rotacji, mo?emy zobaczy? to na przyk?adzie poni?ej:</p>
+<img class="aligncenter" src="http://www.sfml-dev.org/tutorials/2.0/images/graphics-transform-bounds.png" alt="" width="336" height="238" />
+<p style="text-align: justify;">Ten czerwony kwadrat to wizualizacja <strong>FloatRect</strong>, bo o nim tutaj mowa, mimo ?e napis jest przekrzywiony za pomoc? kodu to traktowany on jest jak o wi?kszy prostok?t, poniewa? <strong>FloatRect</strong> jest zawsze równoleg?y do ?cian okna.</p>
+<p style="text-align: justify;">My zajmiemy si? nieco innym sposobem wykrywania kolizji, poniewa? w naszym przypadku to by si? nie sprawdzi?o, dlaczego? Wyobra?my sobie tak? sytuacj?: gracz strzela w asteroid? i mimo ?e pocisk jeszcze nie dotar? do asteroidy zostanie ona zniszczona, poniewa? wykryto kolizj?.</p>
+
+
+[caption id="" align="aligncenter" width="273"]<img src="https://sites.google.com/site/sheadovasdatabase/home/images/kolizja.png" alt="" width="273" height="300" /> Na czerwono: zasi?g wykrycia kolizji[/caption]
+<p style="text-align: justify;">Jak widzimy pocisk (nieco powi?kszony) jest ju? w prostok?cie <strong>FloatRect</strong> tej figury, pewnie za to ?e asteroida szybciej si? rozpada nikt by si? nie pogniewa?, ale tak samo by dzia?a?o otarcie si? gracza z asteroid?, je?eli by przelecia? odpowiednio blisko to by zosta? zniszczony mimo tego ?e jej nie dotkn??. Jak zapewne widzisz wkraczamy ju? w szczegó?y naszego projektu, które wymagaj? od nas wi?cej napracowania.</p>
+<p style="text-align: justify;">Wchodzimy teraz w dzia?y geometrii obliczeniowej, która jest w bardzo du?ej mierze mi obca, wykorzystuje si? tutaj m.in. dzia?ania na macierzach, czy skalarach, z tego powodu mog? poni?ej w wyja?nieniach pojawi? si? b??dy, dlatego je?li jaki? znajdziesz napisz mi o nim w komentarzu.</p>
+<p style="text-align: justify;">Do zaawansowanej kolizji pomi?dzy obiektami WYPUK?YMI wykorzystuje si? algorytm SAT (Separating Axis Theroem), który sprawdza czy dwa obiekty wypuk?e przecinaj? si?. Wykorzystuje si? tutaj twierdzenie, które mówi ?e je?li dwa obiekty wypuk?e nie przecinaj? si? to mi?dzy nimi da si? narysowa? lini?, jednak my wykorzystujemy tutaj nieco zmienion? wersj? tego twierdzenia, która mówi, ?e:</p>
+
+<blockquote>
+<p style="text-align: justify;"><strong>je?eli dwa wypuk?e obiekty nie koliduj? ze sob? to istnieje o?, dla której projekcje obu tych obiektów nie zachodz? na siebie.</strong></p>
+</blockquote>
+O sposobach wykrywania kolizji napisa?em 2-cz??ciowy artyku?: <em>Kolizje w grach 2D</em> (Kategoria: <em>Poradniki</em>).
+
+&nbsp;
+
+<hr />
+<p style="text-align: justify;">Skoro cz??? typowo bibliograficzn? mamy za sob?, czas na w?a?ciwy kod w naszej grze, je?eli zdarzy si?, ?e dosz?a jaka? metoda której nie omówi?em, ani nie wspomnia?em wcze?niej daj mi zna? w komentarzu, ta lekcja powstawa?a w ci?gu kilku dni i mog?o si? tak zdarzy?.</p>
+<p style="text-align: justify;">W klasie <strong>Asteroids</strong> tworzymy now? metod? <span class="lang:c++ decode:true crayon-inline">bool isEmpty()</span>, ta metoda ma za zadanie sprawdzi? czy s? utworzone jakie? asteroidy.</p>
+<p style="text-align: justify;">W <strong>Engine.h</strong> tworzymy <span style="text-decoration: underline;">funkcje</span>(!):</p>
+
+<pre class="lang:c++ decode:true">void getInterval(const Vector2f *axVertices,int numVert, const Vector2f &amp;xAxis,float &amp;min, float &amp;max)
+bool IntervalIntersect(const Vector2f *A,int Anum,const Vector2f *B,int Bnum,const Vector2f &amp;xAxis, const Vector2f &amp;offset)</pre>
+<p style="text-align: justify;">Te funkcje sprawdzaj? czy w podanym przedziale nachodz? na siebie wielok?ty i wygl?daj? one nast?puj?co:</p>
+
+<pre class="lang:c++ decode:true">void getInterval(const Vector2f *axVertices,int numVert, const Vector2f &amp;xAxis,
+	float &amp;min, float &amp;max)
+{
+	min = max = (axVertices[0].x * xAxis.x + axVertices[0].y * xAxis.y);
+
+	for(int i=1;i&lt;numVert;i++)
+	{
+		float d=(axVertices[i].x * xAxis.x + axVertices[i].y * xAxis.y);
+
+		if(d&lt;min) min = d;
+		else if(d&gt;max) max = d;
+	}
+}
+
+bool IntervalIntersect(const Vector2f *A,int Anum,const Vector2f *B,int Bnum,
+	const Vector2f &amp;xAxis, const Vector2f &amp;offset)
+{
+	float min0,max0;
+	float min1,max1;
+
+	getInterval(A,Anum,xAxis,min0,max0);
+	getInterval(B,Bnum,xAxis,min1,max1);
+
+	float h = offset.x * xAxis.x + offset.y*xAxis.y;
+	min0 += h;
+	max0 += h;
+
+	float d0 = min0 - max1;
+	float d1 = min1 - max0;
+
+	if(d0 &gt; 0.0f || d1 &gt; 0.0f)
+		return false;
+	else
+		return true;
+}</pre>
+<p style="text-align: justify;">Je?eli przejrza?e? kod z kursu Polycolly to zapewne zauwa?y?e?, ?e ten kod praktycznie si? niczym nie ró?ni, a to dlatego, ?e nie rozumiem do ko?ca wszystkich fragmentów, jednak spróbujmy to przeanalizowa?:</p>
+
+<ul style="text-align: justify;">
+	<li><span class="lang:c++ decode:true crayon-inline">min = max = (axVertices[0].x * xAxis.x + axVertices[0].y * xAxis.y)</span> - nadajemy tutaj warto?? pocz?tkow? zmiennym <em>min</em> oraz <em>max</em>, jest to produkt pomi?dzy <em>axVertices[0]</em> i <em>xAxis</em></li>
+	<li>nast?pnie szukamy spomi?dzy wszystkich wierzcho?ków warto?? <em>min</em> oraz <em>max</em></li>
+</ul>
+<p style="text-align: justify;">W klasie <strong>Engine</strong> deklarujemy metod? <span class="lang:c++ decode:true crayon-inline">bool check_collision(Vector2f *A,int sizeA,Vector2f *B, int SizeB, Vector2f &amp;offset)</span>, która sprawdza czy zasz?a kolizja, przyjmuje ona za argumenty wska?niki na wspó?rz?dne wierzcho?ków naszych figur, ich wielko??, a tak?e sprawdzany wektor.</p>
+
+<pre class="lang:c++ decode:true">bool Engine::check_collision(Vector2f *A,int sizeA,
+	Vector2f *B, int sizeB, Vector2f &amp;offset)
+{
+	if(!A || !B) return false;
+
+	Vector2f xAxis[64];
+	int iNumAxes = 0;
+
+	//test dla A
+	for(int j=sizeA-1,i=0;i&lt;sizeA;j=i,i++)
+	{
+		Vector2f E0 = A[j];
+		Vector2f E1 = A[i];
+		Vector2f E = E1-E0;
+
+		xAxis[iNumAxes] = Vector2f(-E.y,E.x);
+
+		if(!IntervalIntersect(A,sizeA,B,sizeB,xAxis[iNumAxes],offset))
+			return false;
+
+		iNumAxes++;
+	}
+
+	//test dla B
+	for(int j=sizeB-1,i=0;i&lt;sizeB;j=i,i++)
+	{
+		Vector2f E0 = B[j];
+		Vector2f E1 = B[i];
+		Vector2f E = E1-E0;
+		xAxis[iNumAxes] = Vector2f(-E.y,E.x);
+
+		if(!IntervalIntersect(A,sizeA,B,sizeB,xAxis[iNumAxes],offset))
+			return false;
+
+		iNumAxes++;
+	}
+
+	return true;
+}</pre>
+<p style="text-align: justify;">Sprawdzamy tutaj osie zarówno wielok?ta A jak i B, ta metoda mo?e maksymalnie przyj?? wielok?ty sk?adaj?ce si? w sumie z 64 wierzcho?ków, decyduje o tym tablica <em>xAxis[64]</em>, w p?tlach nast?puje utworzenie wektora i sprawdzenie poprzez rzutowanie go czy istnieje kolizja pomi?dzy obiektami.</p>
+<p style="text-align: justify;">Tutaj ko?czymy z kodem, o którym mam ma?e poj?cie, w metodzie <em>update()</em> napisa?em taki kod dla testów:</p>
+
+<pre class="lang:c++ decode:true">void Engine::update()
+{
+	player.update();
+	bullets_player.update();
+	asteroids.update();
+
+	if(!asteroids.isEmpty())
+	{
+		Vector2f A[3] = {player.getPosition(1),player.getPosition(2),player.getPosition(3)};
+		Vector2f *B = new Vector2f[asteroids.getSize(0)];
+
+		for(int i=0;i&lt;asteroids.getSize(0);i++)
+			B[i] = asteroids.getPoint(0,i);
+
+		bool collision;
+
+		for(int i=0;i&lt;3;i++)
+		{
+
+			for(int j=0;j&lt;asteroids.getSize(0);j++)
+			{
+				collision=(check_collision(A,3,B,asteroids.getSize(0),A[i]-B[j]));
+				if(collision)
+				{
+					std::cout&lt;&lt;"Kolizja! ";
+					break;
+				}
+			}
+		}
+
+		delete []B;
+	}
+}</pre>
+<p style="text-align: justify;">Przeanalizujmy kod, sprawdzamy czy w ogóle s? jakie? asteroidy je?li tak to tworzymy tablic? i umieszczamy w niej wierzcho?ki pozycji gracza, mo?esz powiedzie? zaraz, zaraz przecie? SAT dzia?a tylko na figury wypuk?e, a statek gracza jest figur? wkl?s?a w dodatku ma 4 wierzcho?ki. Masz racj? i z tego wzgl?du nasza kolizja nie b?dzie doskona?a, poniewa? z tego co przekazujemy pó?niej do gry wynika ?e gracz jest trójk?tem, dzi?ki temu mo?emy pos?u?y? si? tutaj SAT'em. Nast?pnie w przypadku wyst?pienia kolizji nasza gra wy?wietla w konsoli tekst.</p>
+<p style="text-align: justify;">Jednak warto by by?o udoskonali? ten kod dla wi?cej ni? 1 asteroidy, tak si? wtedy prezentuje:</p>
+
+<pre class="lang:c++ decode:true">void Engine::update()
+{
+	player.update();
+	bullets_player.update();
+	asteroids.update();
+
+	if(!asteroids.isEmpty())
+	{
+		Vector2f A[3] = {player.getPosition(1),player.getPosition(2),player.getPosition(3)};
+
+		int numAsteroid = 0;
+		while(numAsteroid &lt; asteroids.getSize())
+		{
+			Vector2f *B = new Vector2f[asteroids.getSize(numAsteroid)];
+
+			for(int i=0;i&lt;asteroids.getSize(numAsteroid);i++)
+				B[i] = asteroids.getPoint(numAsteroid,i);
+
+			bool collision;
+
+			for(int i=0;i&lt;3;i++)
+			{
+				for(int j=0;j&lt;asteroids.getSize(numAsteroid);j++)
+				{
+					collision=(check_collision(A,3,B,asteroids.getSize(numAsteroid),A[i]-B[j]));
+					if(collision)
+					{
+						break;
+					}
+				}
+				if(collision)
+				{
+					asteroids.del(numAsteroid);
+					break;
+				}
+			}
+
+			delete []B;
+			numAsteroid++;
+		}
+	}
+}</pre>
+<p style="text-align: justify;">Obecnie graczowi nic si? nie dzieje, tylko je niszczy ale tym zajmiemy si? w lekcji po d?wi?kach (czyli w <em>lekcji 6</em>).</p>
+<p style="text-align: justify;">Zanim przejdziemy dalej, opowiem wam pewn? historyjk?, która jest tak?e usprawiedliwieniem dlaczego ta cz??? pojawia si? tak pó?no. Wyobra?cie sobie sytuacj? gdzie macie taki kod:</p>
+
+<pre class="lang:c++ decode:true">bool funkcja()
+{
+	return false;
+}
+
+int main()
+{
+	//...
+	if(funkcja() == true)
+	{
+		cout&lt;&lt;"Jakis tekst";
+	}
+}</pre>
+<p style="text-align: justify;">Nasza funkcja zawsze zwraca <em>false</em>, lecz mimo tego if si? wykonuje, dlaczego? Nie mam poj?cia, ja spotka?em si? w?a?nie z takim bugiem przy ko?czeniu tej lekcji, mimo ?e sekund? wcze?niej sprawdza?em co funkcja zwraca i wy?wietla?a mi konsola ?e fa?sz, ale dalej instrukcje w if'ie si? wykonywa?y. Strasznie d?ugo si? m?czy?em z rozwi?zaniem tego problemu, ostatecznie rozwi?zanie okaza?o si? banalne: usun??em if'a z kodu i napisa?em go znowu w niezmienionej formie, kod dzia?a. Jest to najdziwniejszy b??d z jakim si? spotka?em (korzystam z VS 2010).</p>
+
+<pre class="lang:c++ decode:true">bool pointInside(Vector2f point, Vector2f *vertices, int size)
+{
+	int i, j = 0;
+	bool oddNODES = false;
+	for (i = 0; i &lt; size; i++)
+	{
+		j++;
+		if (j == size)
+			j = 0;
+		if (vertices[i].y &lt; point.y &amp;&amp; vertices[j].y &gt;= point.y || vertices[j].y &lt; point.y &amp;&amp; vertices[i].y &gt;= point.y)
+		{
+			if (vertices[i].x + (point.y - vertices[i].y) / (vertices[j].y - vertices[i].y) *
+				(vertices[j].x - vertices[i].x) &lt; point.x)
+			{
+				oddNODES = !oddNODES;
+			}
+		}
+	}
+	return oddNODES;
+}</pre>
+<p style="text-align: justify;">Ot wykrywanie, czy punkt jest w ?rodku wielok?ta.</p>
+
+<pre class="lang:c++ decode:true ">	//sprawdzenie pocisków
+	if(!bullets_player.isEmpty())
+	{
+		for(int i=0;i&lt;bullets_player.getSize();i++)
+		{
+			for(int j=0;j&lt;asteroids.getSize();j++)
+			{
+				Vector2f *vert = new Vector2f[asteroids.getSize(j)];
+				for(int k=0;k&lt;asteroids.getSize(j);k++)
+				{
+					vert[k] = asteroids.getPoint(j,k);
+				}
+
+				bool czy_w_polygonie = pointInside(bullets_player.getPoint(i),vert,asteroids.getSize(j));
+
+				if(czy_w_polygonie)
+				{
+					asteroids.del(j);
+					bullets_player.remove(i);
+				}
+				delete []vert;
+			}//for
+		}//for
+	}</pre>
+<p style="text-align: justify;">Ten fragment kodu znajduje si? w klasie Engine w metodzie <em>update()</em> zaraz po sprawdzaniu pocisków, na pocz?tku sprawdzamy czy w ogóle, wystrzelono jakie? pociski, je?eli tak mamy p?tl? odpowiadaj?c? za sprawdzenie wszystkich pocisków, nast?pna p?tla odpowiada za sprawdzenie wszystkich asteroid. Tutaj tworzymy tablic? za pomoc? operatora <em>new</em> oraz uzupe?niamy j? w kolejnej p?tli, nast?pnie widzimy if'a o którym dopiero opowiada?em, w którym ca?y czas wykonywa?y si? instrukcje. Dalej mamy ju? tylko usuni?cie tablicy z pami?ci za pomoc? <em>delete</em>.</p>
+
+
+<hr />
+<p style="text-align: justify;">Ta lekcja z pewno?ci? by nie powsta?a gdyby nie opracowania niektórych tematów przez innych autorów, poniewa? wymaga ona wiedzy, której nie dostarcza si? w liceum, pokazuje to tak?e potrzeb? ci?g?ego kszta?cenia si?. Je?eli planujesz napisa? prost? gr? zdecydowanie polecam ci wykorzystanie mapy kafelkowej, poniewa? do kafelków jest du?o ?atwiej napisa? kolizj?.</p>
+<p style="text-align: justify;">Je?eli si? martwisz, ?e obecnie gra nie prezentuje si? zbyt dobrze lub ?e pociski s? s?abo widoczne to tym zajmiemy si? w jednej z kolejnych lekcji. Nast?pna lekcja b?dzie troch? lu?niejsza, poniewa? zajmiemy si? d?wi?kami i muzyk? w grze.</p>
+<p style="text-align: justify;">Tradycyjnie, jestem otwarty na wszelkie uwagi, pytania, itp. Zapraszam do komentowania</p>
+&nbsp;
+
+<strong>Kod ?ród?owy</strong>
+
+<a href="http://adf.ly/1QDf68">&gt;&gt;Pobierz&lt;&lt;</a> | <a href="http://adf.ly/1QDfAC" target="_blank">&gt;&gt;GitHub&lt;&lt;</a>
+        </body>
+    </html>
